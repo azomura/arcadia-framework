@@ -28,6 +28,12 @@ async fn microservice_router_dispatches_by_pattern() {
         .unwrap();
 
     assert_eq!(response.payload, json!(5));
+    assert!(
+        router
+            .dispatch(RpcRequest { pattern: String::from("missing"), payload: json!({}) })
+            .await
+            .is_none()
+    );
 }
 
 #[derive(Clone)]
@@ -56,6 +62,20 @@ async fn graphql_router_executes_schema_requests() {
         .unwrap();
 
     assert_eq!(response.status(), 200);
+}
+
+#[test]
+fn transport_messages_round_trip_through_serde() {
+    let request = RpcRequest { pattern: String::from("ping"), payload: json!({"ok": true}) };
+    let encoded = serde_json::to_string(&request).unwrap();
+    let decoded: RpcRequest = serde_json::from_str(&encoded).unwrap();
+    assert_eq!(decoded.pattern, "ping");
+    assert_eq!(decoded.payload["ok"], true);
+
+    let response = arcadia_framework::transports::RpcResponse { payload: json!("pong") };
+    let decoded: arcadia_framework::transports::RpcResponse =
+        serde_json::from_str(&serde_json::to_string(&response).unwrap()).unwrap();
+    assert_eq!(decoded.payload, json!("pong"));
 }
 
 #[derive(Clone)]
@@ -112,8 +132,11 @@ async fn websocket_gateway_exposes_connection_lifecycle() {
     gateway.on_connect(&context);
     gateway.on_message(Message::Text("hello".into())).await;
     gateway.on_disconnect(&context);
+    gateway.on_error(&context, String::from("ignored"));
 
     assert_eq!(*events.lock().unwrap(), ["connect", "message", "disconnect"]);
+    assert!(!context.container().contains::<u32>());
+    assert_eq!(context.hub().connected(), 0);
 }
 
 #[test]
@@ -130,6 +153,18 @@ fn websocket_hub_manages_rooms_and_broadcasts() {
     assert_eq!(hub.broadcast("chat", Message::Text("ignored".into())), 0);
     hub.unregister(7);
     assert_eq!(hub.connected(), 0);
+    assert_eq!(hub.broadcast("missing", Message::Text("ignored".into())), 0);
+}
+
+#[test]
+fn websocket_hub_closes_all_registered_connections() {
+    let hub = RoomHub::new();
+    let mut receiver = hub.register(1);
+    let mut second_receiver = hub.register(2);
+
+    assert_eq!(hub.close_all(), 2);
+    assert!(matches!(receiver.try_recv(), Ok(Message::Close(None))));
+    assert!(matches!(second_receiver.try_recv(), Ok(Message::Close(None))));
 }
 
 #[test]
@@ -161,6 +196,7 @@ fn websocket_server_components_compose() {
         .interceptor(Interceptor)
         .filter(Filter);
     assert_eq!(server.hub().connected(), 0);
+    assert_eq!(server.close_all(), 0);
     let _router = server.router();
 }
 
