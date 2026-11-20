@@ -10,6 +10,7 @@ mod factory;
 mod hooks;
 mod injectable;
 mod lifecycle;
+mod module_ref;
 pub mod request;
 mod scope;
 
@@ -17,6 +18,7 @@ pub use container::{Container, ProviderToken};
 pub use factory::ApplicationFactory;
 pub use hooks::Lifecycle;
 pub use injectable::Injectable;
+pub use module_ref::ModuleRef;
 pub use request::{Injected, InjectedToken, RequestContainer};
 pub use scope::Scope;
 

@@ -1,7 +1,8 @@
 use axum::{Extension, Router, middleware};
 
 use crate::{
-    Container, Controller, GlobalModule, Injectable, Lifecycle, Module, ProviderToken, Scope,
+    Container, Controller, GlobalModule, Injectable, Lifecycle, Module, ModuleRef, ProviderToken,
+    Scope,
 };
 
 pub struct ModuleContext {
@@ -63,6 +64,10 @@ impl ModuleContext {
         &self.container
     }
 
+    pub fn module_ref(&self) -> ModuleRef {
+        ModuleRef::new(self.container.clone())
+    }
+
     pub fn controller<T: Controller + Injectable>(&mut self) {
         self.container.register::<T>(Scope::Request);
         self.router = std::mem::take(&mut self.router)
@@ -82,6 +87,14 @@ impl ModuleContext {
         module.register(&mut child);
         self.container.import_exports(&child.container);
         self.merge(child.router);
+    }
+
+    pub fn forward_ref<F, M>(&mut self, factory: F)
+    where
+        F: FnOnce() -> M + Send + 'static,
+        M: Module,
+    {
+        self.import(crate::ForwardRef::new(factory));
     }
 
     pub fn import_global(&mut self, module: GlobalModule<impl Module>) {

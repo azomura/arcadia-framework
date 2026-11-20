@@ -107,6 +107,16 @@ impl Container {
         value.downcast::<T>().unwrap_or_else(|_| unreachable!("provider type changed"))
     }
 
+    pub fn try_resolve<T: Send + Sync + 'static>(&self) -> Option<Arc<T>> {
+        let id = TypeId::of::<T>();
+        if !self.registry.entries.read().unwrap().contains_key(&id)
+            && !self.registry.async_factories.read().unwrap().contains_key(&id)
+        {
+            return None;
+        }
+        Some(self.resolve::<T>())
+    }
+
     pub async fn resolve_async<T: Send + Sync + 'static>(&self) -> Arc<T> {
         let id = TypeId::of::<T>();
         if self.registry.entries.read().unwrap().contains_key(&id) {
