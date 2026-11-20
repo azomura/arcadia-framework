@@ -42,6 +42,15 @@ impl ModuleContext {
         self.container.register_factory(token, scope, factory);
     }
 
+    pub fn async_factory<T, F, Fut>(&mut self, factory: F)
+    where
+        T: Send + Sync + 'static,
+        F: Fn(Container) -> Fut + Send + Sync + 'static,
+        Fut: std::future::Future<Output = T> + Send + 'static,
+    {
+        self.container.register_async_factory(factory);
+    }
+
     pub fn export_token<T: Send + Sync + 'static>(&mut self, token: ProviderToken<T>) {
         self.container.export_token(token);
     }

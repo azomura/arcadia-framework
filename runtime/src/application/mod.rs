@@ -60,6 +60,10 @@ impl Application {
         self.router
     }
 
+    pub fn container(&self) -> &Container {
+        &self.container
+    }
+
     pub async fn listen(self, address: SocketAddr) -> std::io::Result<()> {
         let listener = TcpListener::bind(address).await?;
         let address = listener.local_addr()?;

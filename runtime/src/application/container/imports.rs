@@ -5,7 +5,7 @@ use super::Container;
 impl Container {
     pub fn export<T: Send + Sync + 'static>(&self) {
         assert!(
-            self.contains::<T>(),
+            self.contains::<T>() || self.contains_async::<T>(),
             "cannot export unregistered provider {}",
             std::any::type_name::<T>()
         );
@@ -29,6 +29,7 @@ impl Container {
         let child = Self::default();
         let exports = self.registry.exports.read().unwrap();
         let entries = self.registry.entries.read().unwrap();
+        let async_factories = self.registry.async_factories.read().unwrap();
         let mut target = child.registry.entries.write().unwrap();
         let tokens = self.registry.tokens.read().unwrap();
         let mut target_tokens = child.registry.tokens.write().unwrap();
@@ -37,6 +38,14 @@ impl Container {
             match key {
                 super::ProviderKey::Type(id) if entries.contains_key(id) => {
                     target.insert(*id, entries[id].clone());
+                }
+                super::ProviderKey::Type(id) if async_factories.contains_key(id) => {
+                    child
+                        .registry
+                        .async_factories
+                        .write()
+                        .unwrap()
+                        .insert(*id, async_factories[id].clone());
                 }
                 super::ProviderKey::Token(name) if tokens.contains_key(name) => {
                     target_tokens.insert(name, tokens[name].clone());
@@ -58,6 +67,7 @@ impl Container {
     pub(crate) fn import_exports(&self, child: &Self) {
         let exports = child.registry.exports.read().unwrap();
         let entries = child.registry.entries.read().unwrap();
+        let async_factories = child.registry.async_factories.read().unwrap();
         let mut target = self.registry.entries.write().unwrap();
         let tokens = child.registry.tokens.read().unwrap();
         let mut target_tokens = self.registry.tokens.write().unwrap();
@@ -65,6 +75,13 @@ impl Container {
             match key {
                 super::ProviderKey::Type(id) if entries.contains_key(id) => {
                     target.insert(*id, entries[id].clone());
+                }
+                super::ProviderKey::Type(id) if async_factories.contains_key(id) => {
+                    self.registry
+                        .async_factories
+                        .write()
+                        .unwrap()
+                        .insert(*id, async_factories[id].clone());
                 }
                 super::ProviderKey::Token(name) if tokens.contains_key(name) => {
                     target_tokens.insert(name, tokens[name].clone());

@@ -1,6 +1,8 @@
 use std::{
     any::{Any, TypeId},
     collections::{HashMap, HashSet},
+    future::Future,
+    pin::Pin,
     sync::{Arc, Mutex, RwLock},
 };
 
@@ -15,6 +17,8 @@ pub use tokens::ProviderToken;
 
 pub(super) type Provider = Arc<dyn Any + Send + Sync>;
 pub(super) type Factory = Arc<dyn Fn(&Container) -> Provider + Send + Sync>;
+pub(super) type AsyncFactory =
+    Arc<dyn Fn(Container) -> Pin<Box<dyn Future<Output = Provider> + Send>> + Send + Sync>;
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub(super) enum ProviderKey {
@@ -33,6 +37,8 @@ pub(super) struct Entry {
 pub(super) struct Registry {
     pub(super) entries: RwLock<HashMap<TypeId, Arc<Entry>>>,
     pub(super) tokens: RwLock<HashMap<&'static str, Arc<Entry>>>,
+    pub(super) async_factories: RwLock<HashMap<TypeId, AsyncFactory>>,
+    pub(super) async_singletons: Mutex<HashMap<TypeId, Provider>>,
     pub(super) exports: RwLock<HashSet<ProviderKey>>,
     pub(super) hooks: RwLock<Vec<Arc<dyn super::Lifecycle>>>,
     pub(super) overrides: RwLock<HashSet<ProviderKey>>,
@@ -65,6 +71,10 @@ impl Container {
         });
     }
 
+    pub fn contains_async<T: Send + Sync + 'static>(&self) -> bool {
+        self.registry.async_factories.read().unwrap().contains_key(&TypeId::of::<T>())
+    }
+
     pub fn register_type_factory<T, F>(&self, scope: Scope, factory: F)
     where
         T: Send + Sync + 'static,
@@ -95,6 +105,20 @@ impl Container {
             });
         let value = resolve_entry(self, ProviderKey::Type(id), &entry);
         value.downcast::<T>().unwrap_or_else(|_| unreachable!("provider type changed"))
+    }
+
+    pub async fn resolve_async<T: Send + Sync + 'static>(&self) -> Arc<T> {
+        let id = TypeId::of::<T>();
+        if let Some(service) = self.registry.async_singletons.lock().unwrap().get(&id).cloned() {
+            return service.downcast::<T>().expect("async provider type changed");
+        }
+        let factory =
+            self.registry.async_factories.read().unwrap().get(&id).cloned().unwrap_or_else(|| {
+                panic!("async provider {} is not registered", std::any::type_name::<T>())
+            });
+        let service = factory(self.clone()).await;
+        self.registry.async_singletons.lock().unwrap().insert(id, Arc::clone(&service));
+        service.downcast::<T>().expect("async provider type changed")
     }
 
     pub fn request_scope(&self) -> Self {

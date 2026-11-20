@@ -1,5 +1,7 @@
 use std::{
+    future::Future,
     marker::PhantomData,
+    pin::Pin,
     sync::{Arc, Mutex},
 };
 
@@ -22,6 +24,23 @@ impl<T> ProviderToken<T> {
 }
 
 impl Container {
+    pub fn register_async_factory<T, F, Fut>(&self, factory: F)
+    where
+        T: Send + Sync + 'static,
+        F: Fn(Container) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = T> + Send + 'static,
+    {
+        let factory = Arc::new(factory);
+        self.registry.async_factories.write().unwrap().insert(
+            std::any::TypeId::of::<T>(),
+            Arc::new(move |container| {
+                let factory = Arc::clone(&factory);
+                Box::pin(async move { Arc::new(factory(container).await) as Provider })
+                    as Pin<Box<dyn Future<Output = Provider> + Send>>
+            }),
+        );
+    }
+
     pub fn register_factory<T, F>(&self, token: ProviderToken<T>, scope: Scope, factory: F)
     where
         T: Send + Sync + 'static,
