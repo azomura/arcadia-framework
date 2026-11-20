@@ -1,20 +1,14 @@
 # Arcadia Framework
 
-Arcadia is a Rust web framework inspired by NestJS architecture. It provides
-modules, constructor injection, provider scopes, request context, guards,
-interceptors, pipes, filters, lifecycle hooks, dynamic modules and a testing module.
+Arcadia is a private Rust backend framework inspired by NestJS. It provides
+modular application composition, constructor-based dependency injection,
+provider scopes, request context, guards, interceptors, pipes, filters,
+lifecycle hooks, dynamic modules, configuration, and testing helpers.
 
-The workspace contains the runtime crate (`arcadia-framework`) and procedural
-macros (`arcadia-macros`). The generator in `tools/generate.py` creates and wires
-application modules without embedding project-specific code.
+## Workspace
 
-```toml
-[dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework" }
-arcadia-macros = { git = "https://github.com/azomura/arcadia-framework" }
-```
+- `runtime` — framework runtime and public API.
+- `macros` — procedural macros for modules, controllers, routes, and injection.
 
-The repository is currently intended to remain private. crates.io does not
-support private packages; publication must use an authenticated private Cargo
-registry configured in `.cargo/config.toml`.
-
+The `tools` directory from the legacy project is intentionally not part of this
+repository. The framework is not published to crates.io.

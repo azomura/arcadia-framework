@@ -1,23 +1,34 @@
 # Arcadia Framework
 
-Arcadia is a Rust backend framework inspired by NestJS. The current temporary
-implementation is a single crate; its public architecture is organized around
-modules, controllers, services, constructor injection, and application bootstrap.
+Arcadia is a private Rust backend framework inspired by NestJS. The repository
+contains a runtime crate and a procedural-macro crate. The runtime owns HTTP,
+DI, routing, configuration, lifecycle, and testing abstractions; macros provide
+declarative module, controller, route, and injectable definitions.
 
-## Development rules
+## Architecture
 
-- Keep HTTP concerns in controllers and business logic in services.
-- Prefer structs with private fields, constructors, composition, and traits.
-- Add functional modules under `src/modules/<name>/`.
-- Format with `cargo fmt --all` and validate with `cargo test --workspace`.
+- `runtime/src/application`: application factory, container, scopes, lifecycle.
+- `runtime/src/config`: environment and typed configuration primitives.
+- `runtime/src/http`: request execution, pipeline, guards, pipes, filters,
+  interceptors, middleware, and validation.
+- `runtime/src/routing`: modules, controllers, dynamic modules, and request logs.
+- `runtime/src/testing`: framework testing helpers.
+- `macros/src`: procedural macros and their expansion support.
+- `tools` is intentionally excluded from this repository migration.
+
+Controllers own transport concerns. Services and providers own business logic.
+Dependencies are created by constructors and resolved by `Container`.
+
+## Rules
+
+- Keep fields private and expose behavior through constructors and methods.
+- Prefer composition and traits over global state and manual registration.
+- Use `cargo fmt --all -- --check`, `cargo test --workspace`, and clippy before
+  completing a functional change.
+- Do not use `println!` for backend logging; use `tracing`.
 - Use Conventional Commits: `type(scope): description`.
-- A commit may contain no more than five files.
-- Commit messages are one concise lowercase English line, under 100 characters,
-  with no trailing period.
-
-## Repository layout
-
-- `src/application.rs`: application bootstrap and dependency container.
-- `src/routing.rs`: module and controller contracts.
-- `src/http.rs`: request/response abstractions.
-
+- Allowed types: `feat`, `fix`, `refactor`, `docs`, `test`, `build`, `ci`,
+  `chore`, `perf`, `revert`.
+- Each commit contains at most five files and exactly one concise English line.
+- Commit messages use lowercase imperative English, stay under 100 characters,
+  and do not end with a period.
