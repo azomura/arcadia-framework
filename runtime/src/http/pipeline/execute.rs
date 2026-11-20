@@ -18,13 +18,13 @@ pub(super) async fn execute(
             return pipeline.filter.catch(exception);
         }
     }
+    if let Err(exception) = authorize(&pipeline, &request) {
+        return pipeline.filter.catch(exception);
+    }
     for pipe in &pipeline.pipes {
         if let Err(exception) = pipe.transform_request(&mut request) {
             return pipeline.filter.catch(exception);
         }
-    }
-    if let Err(exception) = authorize(&pipeline, &request) {
-        return pipeline.filter.catch(exception);
     }
     finish(&pipeline, next.run(request).await)
 }

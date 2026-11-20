@@ -8,4 +8,5 @@ pub use application::{
     Application, ApplicationFactory, Container, Injectable, Injected, InjectedToken, Lifecycle,
     ProviderToken, RequestContainer, Scope,
 };
+pub use http::HttpException;
 pub use routing::{Controller, DynamicModule, GlobalModule, Module, ModuleContext};
