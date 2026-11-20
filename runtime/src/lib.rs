@@ -4,6 +4,7 @@ pub mod discovery;
 pub mod http;
 pub mod routing;
 pub mod testing;
+pub mod transports;
 
 pub use application::{
     Application, ApplicationFactory, Container, Injectable, Injected, InjectedToken, Lazy,
