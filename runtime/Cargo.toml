@@ -1,6 +1,6 @@
 [package]
 name = "arcadia-framework"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "A NestJS-inspired modular backend framework for Rust"
 license = "MIT"
