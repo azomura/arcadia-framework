@@ -1,3 +1,5 @@
+#[cfg(unix)]
+use std::os::unix::ffi::OsStringExt;
 use std::{
     ffi::OsString,
     fs,
@@ -56,6 +58,14 @@ fn config_values_read_optional_and_merge_files() {
     assert_eq!(merged.read(&ConfigField::new("PORT", "port")).unwrap(), "9000");
     assert!(merged.contains("HOST"));
     assert_eq!(merged.optional("MISSING").unwrap(), None);
+    assert!(merged.read(&ConfigField::new("REQUIRED", "required")).is_err());
+
+    #[cfg(unix)]
+    {
+        let invalid =
+            ConfigValues::new([(OsString::from("INVALID"), OsString::from_vec(vec![0xff]))]);
+        assert!(invalid.optional("INVALID").is_err());
+    }
 
     fs::remove_file(path).unwrap();
 }
@@ -101,7 +111,13 @@ fn config_rejects_invalid_values_and_validates_sections() {
     assert!(validate_text(&text, " ").is_err());
     assert!(validate_text(&text, "arcadia").is_ok());
     assert!(Section::load(&Reader(values(&[("PORT", "8080")]))).is_ok());
+    assert!(Section::load(&Reader(values(&[("PORT", "0")]))).is_err());
     assert!(ConfigValues::default().with_files(&["/missing/arcadia.env".into()]).is_err());
+
+    let malformed = std::env::temp_dir().join("arcadia-invalid.env");
+    fs::write(&malformed, "INVALID LINE").unwrap();
+    assert!(ConfigValues::default().with_files(std::slice::from_ref(&malformed)).is_err());
+    fs::remove_file(malformed).unwrap();
 }
 
 #[test]

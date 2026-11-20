@@ -64,6 +64,23 @@ async fn graphql_router_executes_schema_requests() {
     assert_eq!(response.status(), 200);
 }
 
+#[tokio::test]
+async fn graphql_router_accepts_default_variables() {
+    let response = graphql_router(Schema)
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/")
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"query":"{ hello }","variables":{}}"#))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), 200);
+}
+
 #[test]
 fn transport_messages_round_trip_through_serde() {
     let request = RpcRequest { pattern: String::from("ping"), payload: json!({"ok": true}) };
@@ -197,6 +214,14 @@ fn websocket_server_components_compose() {
         .filter(Filter);
     assert_eq!(server.hub().connected(), 0);
     assert_eq!(server.close_all(), 0);
+    let context = WebSocketContext::new_for_test(8);
+    let message = Message::Text(String::from("hello").into());
+    let interceptor = Interceptor;
+    interceptor.before(&context, &message);
+    interceptor.after(&context, &message);
+    assert!(Allow.can_activate(&context, &message));
+    assert_eq!(Pipe.transform(message.clone()).unwrap(), message);
+    assert!(matches!(Filter.catch(&context, String::from("error")), Some(Message::Text(_))));
     let _router = server.router();
 }
 
@@ -210,6 +235,17 @@ fn websocket_json_message_parses_text_and_rejects_control_frames() {
     assert!(
         arcadia_framework::transports::JsonMessage::<serde_json::Value>::parse(Message::Ping(
             Vec::new().into()
+        ),)
+        .is_err()
+    );
+    let binary = arcadia_framework::transports::JsonMessage::<serde_json::Value>::parse(
+        Message::Binary(br#"{"value":43}"#.to_vec().into()),
+    )
+    .unwrap();
+    assert_eq!(binary.0["value"], 43);
+    assert!(
+        arcadia_framework::transports::JsonMessage::<serde_json::Value>::parse(Message::Text(
+            "invalid".into()
         ),)
         .is_err()
     );
