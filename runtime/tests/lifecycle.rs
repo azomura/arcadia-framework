@@ -32,6 +32,10 @@ impl Module for TestModule {
         context.provide::<Hook>();
         context.lifecycle::<Hook>();
     }
+
+    fn openapi() -> utoipa::openapi::OpenApi {
+        utoipa::openapi::OpenApi::default()
+    }
 }
 
 #[test]
