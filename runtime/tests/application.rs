@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use arcadia_framework::{Container, Injectable, ProviderToken, Scope};
+use arcadia_framework::{Container, Injectable, Module, ModuleContext, ProviderToken, Scope};
 
 struct Singleton;
 
@@ -57,4 +57,45 @@ fn container_resolves_values_and_tokens() {
 
     assert_eq!(*container.resolve::<u32>(), 42);
     assert_eq!(container.resolve_token(token).as_str(), "hello");
+}
+
+struct ExportedService;
+
+impl Injectable for ExportedService {
+    fn create(_: &Container) -> Self {
+        Self
+    }
+}
+
+struct FeatureModule;
+
+impl Module for FeatureModule {
+    fn register(self, context: &mut ModuleContext) {
+        context.provide::<ExportedService>();
+        context.export::<ExportedService>();
+    }
+
+    fn openapi() -> utoipa::openapi::OpenApi {
+        utoipa::openapi::OpenApi::default()
+    }
+}
+
+struct RootModule;
+
+impl Module for RootModule {
+    fn register(self, context: &mut ModuleContext) {
+        context.import(FeatureModule);
+    }
+
+    fn openapi() -> utoipa::openapi::OpenApi {
+        utoipa::openapi::OpenApi::default()
+    }
+}
+
+#[test]
+fn imported_module_exports_are_available_to_root() {
+    let (container, _) = RootModule.into_parts();
+
+    assert!(container.contains::<ExportedService>());
+    let _ = container.resolve::<ExportedService>();
 }
