@@ -2,6 +2,28 @@
 
 All notable Arcadia Framework changes are documented here.
 
+## 0.1.8
+
+### English
+
+- expanded integration coverage for the container, scoped tokens, lifecycle,
+  application bootstrap, and listen entrypoint;
+- covered configuration edge cases, invalid environment files, transport
+  message parsing, GraphQL defaults, and WebSocket room behavior;
+- covered all module registration groups and controller OpenAPI metadata in
+  procedural macro integration tests;
+- verified formatting, workspace tests, Clippy, and LLVM source coverage.
+
+### Русский
+
+- расширено интеграционное покрытие контейнера, scoped-токенов, lifecycle,
+  bootstrap приложения и входа `listen`;
+- добавлены проверки edge cases конфигурации, некорректных env-файлов,
+  transport-сообщений, GraphQL defaults и работы WebSocket-комнат;
+- покрыты все группы регистрации модулей и OpenAPI metadata контроллеров в
+  интеграционных тестах procedural macros;
+- проверены форматирование, workspace-тесты, Clippy и LLVM source coverage.
+
 ## 0.1.7
 
 ### English
