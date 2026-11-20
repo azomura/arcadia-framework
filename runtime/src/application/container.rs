@@ -109,6 +109,9 @@ impl Container {
 
     pub async fn resolve_async<T: Send + Sync + 'static>(&self) -> Arc<T> {
         let id = TypeId::of::<T>();
+        if self.registry.entries.read().unwrap().contains_key(&id) {
+            return self.resolve::<T>();
+        }
         if let Some(service) = self.registry.async_singletons.lock().unwrap().get(&id).cloned() {
             return service.downcast::<T>().expect("async provider type changed");
         }
