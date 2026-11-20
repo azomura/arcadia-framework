@@ -2,7 +2,13 @@
 name = "arcadia-macros"
 version = "0.1.0"
 edition = "2024"
-publish = false
+description = "Procedural macros for the Arcadia Rust backend framework"
+license = "MIT"
+repository = "https://github.com/azomura/arcadia-framework"
+documentation = "https://docs.rs/arcadia-macros"
+readme = "README.md"
+keywords = ["rust", "procedural-macro", "framework", "backend"]
+categories = ["development-tools::procedural-macro-helpers"]
 
 [lib]
 proc-macro = true

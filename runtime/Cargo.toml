@@ -2,7 +2,13 @@
 name = "arcadia-framework"
 version = "0.1.0"
 edition = "2024"
-publish = false
+description = "A NestJS-inspired modular backend framework for Rust"
+license = "MIT"
+repository = "https://github.com/azomura/arcadia-framework"
+documentation = "https://docs.rs/arcadia-framework"
+readme = "README.md"
+keywords = ["rust", "backend", "framework", "dependency-injection"]
+categories = ["web-programming::http-server", "web-programming"]
 
 [dependencies]
 axum = { version = "0.8", features = ["ws"] }
