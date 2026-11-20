@@ -11,4 +11,4 @@ lifecycle hooks, dynamic modules, configuration, and testing helpers.
 - `macros` — procedural macros for modules, controllers, routes, and injection.
 
 The `tools` directory from the legacy project is intentionally not part of this
-repository. The framework is not published to crates.io.
+repository. The framework runtime and macro crates are prepared for crates.io.
