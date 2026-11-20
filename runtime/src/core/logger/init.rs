@@ -1,6 +1,9 @@
 use super::{Logger, subscriber::subscriber};
 
-use std::path::Path;
+use std::{
+    path::Path,
+    sync::{Mutex, OnceLock},
+};
 
 use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 
@@ -47,6 +50,38 @@ pub fn init_with_options(
         LogEnvironment::Test | LogEnvironment::Release => "info",
     };
     subscriber(logger.writer.clone(), EnvFilter::new(level), options.ansi).try_init()?;
+    tracing::info!(
+        log_kind = "SUCCESS",
+        environment = options.environment.as_str(),
+        file = %logger.path().display(),
+        "File logging initialized"
+    );
+    if let Some(path) = logger.path().parent() {
+        tracing::debug!(root = %path.display(), "Logger paths resolved");
+    }
+    Ok(logger)
+}
+
+pub fn init_global(
+    directory: impl AsRef<Path>,
+) -> Result<&'static Logger, Box<dyn std::error::Error + Send + Sync>> {
+    static LOGGER: OnceLock<Logger> = OnceLock::new();
+    static INIT_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+    let _lock = INIT_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+    if let Some(logger) = LOGGER.get() {
+        return Ok(logger);
+    }
+
+    let options = LogOptions::default();
+    let logger = Logger::open(directory.as_ref(), options.environment.as_str())?;
+    let level = match options.environment {
+        LogEnvironment::Dev => "debug",
+        LogEnvironment::Test | LogEnvironment::Release => "info",
+    };
+    subscriber(logger.writer.clone(), EnvFilter::new(level), options.ansi).try_init()?;
+    let _ = LOGGER.set(logger);
+    let logger = LOGGER.get().expect("global logger was initialized");
     tracing::info!(
         log_kind = "SUCCESS",
         environment = options.environment.as_str(),

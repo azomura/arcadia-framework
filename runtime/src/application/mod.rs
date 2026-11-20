@@ -3,7 +3,11 @@ use std::net::SocketAddr;
 use utoipa::openapi::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::{http::HttpPipeline, routing::log_request};
+use crate::{
+    core::logger::{Logger, init_global},
+    http::HttpPipeline,
+    routing::log_request,
+};
 
 pub mod container;
 mod factory;
@@ -31,15 +35,21 @@ pub struct Application {
     container: Container,
     router: Router,
     documentation: bool,
+    _logger: &'static Logger,
 }
 
 impl Application {
     pub(super) fn new(container: Container, router: Router) -> Self {
+        let logger = init_global("logs").unwrap_or_else(|error| {
+            panic!("failed to initialize Arcadia logger: {error}");
+        });
         container.initialize();
+        tracing::info!(log_kind = "SUCCESS", "Application initialized");
         Self {
             container,
             router: router.fallback(not_found).layer(middleware::from_fn(log_request)),
             documentation: false,
+            _logger: logger,
         }
     }
 
@@ -86,6 +96,7 @@ impl Application {
 
         let result = server.with_graceful_shutdown(shutdown()).await;
         self.container.shutdown();
+        tracing::info!(log_kind = "SUCCESS", "Application shutdown complete");
         result
     }
 }
