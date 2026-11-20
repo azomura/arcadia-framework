@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+.agents
+.aws
+.codex
+logs
+target
+**/target
+*.log
