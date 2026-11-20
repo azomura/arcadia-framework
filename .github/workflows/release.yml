@@ -24,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
-      ref: ${{ steps.commit.outputs.ref || steps.current.outputs.ref }}
 
     steps:
       - name: Checkout main history
@@ -43,7 +42,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Commit automatic version bump
-        id: commit
         if: steps.version.outputs.bumped == 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -51,12 +49,6 @@ jobs:
           git add runtime/Cargo.toml macros/Cargo.toml Cargo.lock README.md runtime/README.md macros/README.md
           git commit -m "chore(release): bump crates to v${VERSION} [skip ci]"
           git push origin HEAD:main
-          echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Use current commit
-        id: current
-        if: steps.version.outputs.bumped != 'true'
-        run: echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Create release tag
         env:
@@ -73,7 +65,7 @@ jobs:
     uses: ./.github/workflows/publish-cargo.yml
     with:
       version: ${{ needs.version.outputs.version }}
-      ref: ${{ needs.version.outputs.ref }}
+      ref: v${{ needs.version.outputs.version }}
     secrets: inherit
 
   publish-ghcr:
@@ -81,7 +73,7 @@ jobs:
     uses: ./.github/workflows/publish-ghcr.yml
     with:
       version: ${{ needs.version.outputs.version }}
-      ref: ${{ needs.version.outputs.ref }}
+      ref: v${{ needs.version.outputs.version }}
     secrets: inherit
 
   github-release:
@@ -92,7 +84,7 @@ jobs:
       - name: Checkout release commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.version.outputs.ref }}
+          ref: v${{ needs.version.outputs.version }}
 
       - name: Prepare release description
         env:
