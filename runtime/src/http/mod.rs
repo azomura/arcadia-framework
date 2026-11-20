@@ -12,7 +12,7 @@ mod validation;
 
 pub use decorators::{JsonBody, PathParams, QueryParams};
 pub use exception::{HttpException, HttpResult};
-pub use execution::ExecutionContext;
+pub use execution::{ExecutionContext, TransportType};
 pub use filter::{ExceptionFilter, JsonExceptionFilter};
 pub use guard::{Guard, Guarded};
 pub use interceptor::Interceptor;
