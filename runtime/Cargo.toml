@@ -64,6 +64,10 @@ name = "http_execution"
 path = "tests/http/execution.rs"
 
 [[test]]
+name = "http_components"
+path = "tests/http/components.rs"
+
+[[test]]
 name = "http_layers"
 path = "tests/http/layers.rs"
 
