@@ -64,6 +64,14 @@ name = "core_logger"
 path = "tests/core/logger.rs"
 
 [[test]]
+name = "core_init"
+path = "tests/core/init.rs"
+
+[[test]]
+name = "core_global_logger"
+path = "tests/core/global.rs"
+
+[[test]]
 name = "http_execution"
 path = "tests/http/execution.rs"
 
