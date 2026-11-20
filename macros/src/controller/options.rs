@@ -14,11 +14,6 @@ pub(crate) struct ControllerOptions {
 }
 
 impl ControllerOptions {
-    #[cfg(test)]
-    pub(crate) fn for_path(path: impl Into<String>) -> Self {
-        Self { path: path.into(), ..Self::default() }
-    }
-
     pub(super) fn route_prefix(&self) -> String {
         match &self.version {
             Some(version) => format!("/v{}{}", version.trim_start_matches('v'), self.path),
