@@ -31,3 +31,12 @@ fn logger_creates_unique_environment_file_without_ansi() {
     assert!(!contents.contains("\u{1b}["));
     fs::remove_dir_all(directory).unwrap();
 }
+
+#[test]
+fn logger_environment_and_default_options_are_consistent() {
+    assert_eq!(LogEnvironment::Test.as_str(), "test");
+    assert_eq!(LogEnvironment::Dev.as_str(), "dev");
+    assert_eq!(LogEnvironment::Release.as_str(), "release");
+    let options = LogOptions::default();
+    assert!(matches!(options.environment, LogEnvironment::Test | LogEnvironment::Dev));
+}
