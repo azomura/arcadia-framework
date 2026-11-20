@@ -31,3 +31,25 @@ impl<M: Module> GlobalModule<M> {
         self.0.register(context);
     }
 }
+
+pub struct ForwardRef<F>(Option<F>);
+
+impl<F> ForwardRef<F> {
+    pub fn new(factory: F) -> Self {
+        Self(Some(factory))
+    }
+}
+
+impl<F, M> Module for ForwardRef<F>
+where
+    F: FnOnce() -> M + Send + 'static,
+    M: Module,
+{
+    fn register(mut self, context: &mut ModuleContext) {
+        (self.0.take().expect("forward reference already consumed"))().register(context);
+    }
+
+    fn openapi() -> OpenApi {
+        M::openapi()
+    }
+}

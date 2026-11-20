@@ -6,7 +6,7 @@ pub mod testing;
 
 pub use application::{
     Application, ApplicationFactory, Container, Injectable, Injected, InjectedToken, Lifecycle,
-    ProviderToken, RequestContainer, Scope,
+    ModuleRef, ProviderToken, RequestContainer, Scope,
 };
 pub use http::HttpException;
-pub use routing::{Controller, DynamicModule, GlobalModule, Module, ModuleContext};
+pub use routing::{Controller, DynamicModule, ForwardRef, GlobalModule, Module, ModuleContext};
