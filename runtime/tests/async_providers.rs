@@ -30,7 +30,7 @@ impl Module for RootModule {
 
 #[tokio::test]
 async fn imported_module_resolves_async_provider() {
-    let application = ApplicationFactory::create(RootModule);
+    let application = ApplicationFactory::create_async(RootModule).await;
     let service = application.container().resolve_async::<AsyncService>().await;
 
     assert_eq!(service.0, "ready");

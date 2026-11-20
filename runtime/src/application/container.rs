@@ -134,6 +134,16 @@ impl Container {
         service.downcast::<T>().expect("async provider type changed")
     }
 
+    pub(crate) async fn initialize_async(&self) {
+        let factories = self.registry.async_factories.read().unwrap().clone();
+        for (id, factory) in factories {
+            if !self.registry.async_singletons.lock().unwrap().contains_key(&id) {
+                let service = factory(self.clone()).await;
+                self.registry.async_singletons.lock().unwrap().insert(id, service);
+            }
+        }
+    }
+
     pub fn request_scope(&self) -> Self {
         Self { registry: self.registry.clone(), requests: Arc::default() }
     }
