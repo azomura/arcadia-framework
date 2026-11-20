@@ -10,6 +10,16 @@ pub enum TransportType {
     Graphql,
 }
 
+pub struct HttpArgumentsHost<'a> {
+    request: &'a Request<Body>,
+}
+
+impl<'a> HttpArgumentsHost<'a> {
+    pub fn request(&self) -> &'a Request<Body> {
+        self.request
+    }
+}
+
 pub struct ExecutionContext<'a> {
     request: &'a Request<Body>,
     metadata: &'a RouteMetadata,
@@ -37,6 +47,10 @@ impl<'a> ExecutionContext<'a> {
         self.transport
     }
 
+    pub fn get_type(&self) -> TransportType {
+        self.transport
+    }
+
     pub fn is_http(&self) -> bool {
         self.transport == TransportType::Http
     }
@@ -45,11 +59,23 @@ impl<'a> ExecutionContext<'a> {
         self.metadata.controller()
     }
 
+    pub fn get_class(&self) -> &'static str {
+        self.class_name()
+    }
+
     pub fn handler_name(&self) -> &'static str {
         self.metadata.handler()
     }
 
+    pub fn get_handler(&self) -> &'static str {
+        self.handler_name()
+    }
+
     pub fn switch_to_http(&self) -> &Request<Body> {
         self.request
+    }
+
+    pub fn http(&self) -> HttpArgumentsHost<'a> {
+        HttpArgumentsHost { request: self.request }
     }
 }
