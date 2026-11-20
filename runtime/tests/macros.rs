@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use arcadia_framework::{ApplicationFactory, ProviderToken};
+use arcadia_framework::{ApplicationFactory, ProviderToken, RequestExtension};
 use arcadia_macros::{controller, injectable, module};
 use axum::{body::Body, http::Request};
 use tower::ServiceExt;
@@ -35,11 +35,11 @@ impl AppController {
     }
 
     #[get("/")]
-    async fn index(&self) -> &'static str {
+    async fn index(&self, RequestExtension(value): RequestExtension<&'static str>) -> &'static str {
         let _ = &self.service;
         let _ = &self.optional;
         let _ = &self.optional_token;
-        "ok"
+        value
     }
 }
 
@@ -50,6 +50,7 @@ struct AppModule {}
 async fn macros_build_module_controller_and_inject_provider() {
     let response = ApplicationFactory::create(AppModule {})
         .into_router()
+        .layer(axum::Extension("ok"))
         .oneshot(Request::builder().uri("/app/").body(Body::empty()).unwrap())
         .await
         .unwrap();

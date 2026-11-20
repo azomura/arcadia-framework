@@ -19,7 +19,7 @@ pub use factory::ApplicationFactory;
 pub use hooks::Lifecycle;
 pub use injectable::Injectable;
 pub use module_ref::ModuleRef;
-pub use request::{Injected, InjectedToken, RequestContainer};
+pub use request::{Injected, InjectedToken, RequestContainer, RequestExtension};
 pub use scope::Scope;
 
 use lifecycle::{not_found, shutdown};

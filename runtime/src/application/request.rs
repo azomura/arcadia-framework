@@ -21,6 +21,20 @@ pub struct Injected<T>(pub Arc<T>);
 
 pub struct RequestContainer(pub Container);
 
+pub struct RequestExtension<T>(pub T);
+
+impl<T, S> FromRequestParts<S> for RequestExtension<T>
+where
+    T: Clone + Send + Sync + 'static,
+    S: Send + Sync,
+{
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
+        parts.extensions.get::<T>().cloned().map(Self).ok_or(StatusCode::INTERNAL_SERVER_ERROR)
+    }
+}
+
 impl<S> FromRequestParts<S> for RequestContainer
 where
     S: Send + Sync,
