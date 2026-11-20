@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use arcadia_framework::ApplicationFactory;
+use arcadia_framework::{ApplicationFactory, ProviderToken};
 use arcadia_macros::{controller, injectable, module};
 use axum::{body::Body, http::Request};
 use tower::ServiceExt;
@@ -8,6 +8,7 @@ use tower::ServiceExt;
 #[derive(Clone)]
 struct AppService;
 struct OptionalService;
+const OPTIONAL_TOKEN: ProviderToken<OptionalService> = ProviderToken::new("optional");
 
 #[injectable]
 impl AppService {
@@ -20,19 +21,24 @@ impl AppService {
 struct AppController {
     service: Arc<AppService>,
     optional: Option<Arc<OptionalService>>,
+    optional_token: Option<Arc<OptionalService>>,
 }
 
 #[controller(path = "/app")]
 #[injectable]
 impl AppController {
-    fn new(service: Arc<AppService>, optional: Option<Arc<OptionalService>>) -> Self {
-        Self { service, optional }
+    fn new(
+        service: Arc<AppService>, optional: Option<Arc<OptionalService>>,
+        #[inject(OPTIONAL_TOKEN)] optional_token: Option<Arc<OptionalService>>,
+    ) -> Self {
+        Self { service, optional, optional_token }
     }
 
     #[get("/")]
     async fn index(&self) -> &'static str {
         let _ = &self.service;
         let _ = &self.optional;
+        let _ = &self.optional_token;
         "ok"
     }
 }

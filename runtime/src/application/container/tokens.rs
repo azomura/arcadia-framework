@@ -93,4 +93,13 @@ impl Container {
             .downcast::<T>()
             .unwrap_or_else(|_| unreachable!("provider token type changed"))
     }
+
+    pub fn try_resolve_token<T: Send + Sync + 'static>(
+        &self, token: ProviderToken<T>,
+    ) -> Option<Arc<T>> {
+        if !self.registry.tokens.read().unwrap().contains_key(token.name()) {
+            return None;
+        }
+        Some(self.resolve_token(token))
+    }
 }

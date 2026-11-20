@@ -39,12 +39,7 @@ fn injectable(implementation: &mut ItemImpl) -> syn::Result<proc_macro2::TokenSt
             (Some(token), false) => quote!(container.resolve_token::<#ty>(#token)),
             (None, false) => quote!(container.resolve::<#ty>()),
             (None, true) => quote!(container.try_resolve::<#ty>()),
-            (Some(_), true) => {
-                return Err(syn::Error::new_spanned(
-                    argument,
-                    "optional token injection is unsupported",
-                ));
-            }
+            (Some(token), true) => quote!(container.try_resolve_token::<#ty>(#token)),
         });
     }
 
