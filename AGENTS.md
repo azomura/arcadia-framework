@@ -1,34 +1,110 @@
-# Arcadia Framework
+# Правила проекта Arcadia Framework
 
-Arcadia is a private Rust backend framework inspired by NestJS. The repository
-contains a runtime crate and a procedural-macro crate. The runtime owns HTTP,
-DI, routing, configuration, lifecycle, and testing abstractions; macros provide
-declarative module, controller, route, and injectable definitions.
+Единый файл инструкций для runtime, procedural macros, тестов и примеров
+приложений. Правила применяются ко всем текущим файлам соответствующей части
+проекта. Не создавать вложенные `AGENTS.md` с дублирующими или неполными правилами.
 
-## Architecture
+## Форматирование
 
-- `runtime/src/application`: application factory, container, scopes, lifecycle.
-- `runtime/src/config`: environment and typed configuration primitives.
-- `runtime/src/http`: request execution, pipeline, guards, pipes, filters,
-  interceptors, middleware, and validation.
-- `runtime/src/routing`: modules, controllers, dynamic modules, and request logs.
-- `runtime/src/testing`: framework testing helpers.
-- `macros/src`: procedural macros and their expansion support.
-- `tools` is intentionally excluded from this repository migration.
+- Все настройки оформления хранятся в `formatting.toml`; это единственный
+  источник правил форматирования.
+- Соблюдать `rustfmt`, ограничения длины строк, layout и review для всех файлов.
+- Перед завершением изменений применять `cargo fmt --all` и проверять результат
+  через `cargo fmt --all -- --check`.
+- Не менять `rustfmt.toml` отдельно: он должен соответствовать
+  `formatting.toml` и используется только для совместимости с IDE.
+- Не добавлять `rustfmt::skip` ради оформления.
+- Форматтер не меняет бизнес-логику, не придумывает переменные, не заменяет
+  `if` на `match` и не разделяет файлы автоматически.
 
-Controllers own transport concerns. Services and providers own business logic.
-Dependencies are created by constructors and resolved by `Container`.
+## Архитектура и расположение файлов
 
-## Rules
+- Framework строится по архитектуре NestJS средствами Rust с принципами ООП.
+- Контроллеры и сервисы — структуры с методами; зависимости передаются через
+  конструкторы и разрешаются контейнером.
+- Использовать инкапсуляцию, композицию и трейты; поля зависимостей держать
+  закрытыми.
+- Контроллер занимается HTTP, сервис — бизнес-логикой без зависимости от HTTP.
+- Runtime размещается в `runtime/src/` и разделяется на `application`, `config`,
+  `http`, `routing`, `testing`.
+- Реализацию procedural macros хранить в `macros/src/`.
+- Общую инфраструктуру держать в подпапках runtime по назначению, не смешивать
+  application, routing, HTTP pipeline и конфигурацию в одном модуле.
+- Перед добавлением общей функции проверять существующий runtime и macros.
+  Повторяющуюся логику выносить в общий компонент по назначению.
+- Не использовать `Nest` в именах типов и файлов инфраструктуры. Использовать
+  `ApplicationFactory`, `ModuleContext`, `Container` и аналогичные имена Arcadia.
+- Модули должны регистрировать controllers, providers и imports через module API;
+  не писать ручную регистрацию в точке запуска.
+- Маршруты объявлять через атрибуты procedural macros: `controller`, `get`,
+  `post`, `put`, `patch`, `delete`, `head`, `options`.
+- Сохранять отдельный crate runtime и отдельный crate macros в workspace.
+- Примеры приложений размещать отдельно и подключать к runtime через зависимость,
+  не смешивая demo-код с runtime.
+- Конфигурации IDE хранить в `.idea/runConfigurations`; папку `.run` не добавлять.
 
-- Keep fields private and expose behavior through constructors and methods.
-- Prefer composition and traits over global state and manual registration.
-- Use `cargo fmt --all -- --check`, `cargo test --workspace`, and clippy before
-  completing a functional change.
-- Do not use `println!` for backend logging; use `tracing`.
-- Use Conventional Commits: `type(scope): description`.
-- Allowed types: `feat`, `fix`, `refactor`, `docs`, `test`, `build`, `ci`,
+## Версии библиотек
+
+- При добавлении или обновлении зависимостей использовать последние стабильные
+  версии и проверять их по официальному реестру или документации.
+- При изменении API адаптировать код к новой версии, а не откатывать библиотеку.
+- Сохранять изменения версий и переименования пакетов, сделанные пользователем.
+- Обновлять `Cargo.lock` и проверять сборку, тесты и workspace-конфигурацию.
+
+## HTTP и логирование
+
+- API возвращает JSON с корректным `Content-Type`, включая корневой ответ.
+- OpenAPI и Swagger включать по умолчанию только в debug и test; в release
+  разрешать их через `DOCS_ENABLED`.
+- Доступ к документации ограничивать `DOCS_ALLOWED_IPS` по адресу TCP-соединения.
+- Использовать `tracing` и `tracing-subscriber`, а не `println!` или `eprintln!`.
+- Уровни логирования: ERROR — красный, DEBUG — фиолетовый, WARN — жёлтый,
+  SUCCESS — зелёный, INFO — голубой, CRITICAL — жирный белый на красном фоне,
+  TRACE — серый.
+- Окрашивать уровень, модуль, сообщение и поля; после уровня оставлять один
+  пробел без выравнивания.
+- `SUCCESS` — INFO с меткой, `CRITICAL` — ERROR с меткой.
+- Уровень определять автоматически: DEBUG для debug-сборки, иначе INFO.
+  Не создавать отдельный `LoggingConfig` и параметры цвета в конфигурации.
+- `RUST_LOG` не переопределяет автоматический выбор уровня. `NO_COLOR` должен
+  обрабатываться логгером и отключать цвета.
+- Обычные логи выводить в консоль и сохранять в файл. Каждый запуск создаёт
+  отдельный файл в `logs` с UTC-временем старта, окружением и PID.
+- Файлы логов не должны содержать ANSI-коды; старые файлы нельзя перезаписывать.
+- Окружение определять автоматически: `test` для unit-тестов, `dev` для debug,
+  `release` для release-сборки.
+- Для каждого запроса писать метод, путь, статус, длительность и IP:порт
+  источника в формате `GET / 200 0.07 ms — 127.0.0.1:54321`.
+- Не писать query-параметры, тела запросов и заголовки авторизации.
+- Не дублировать путь шаблоном route; время указывать в миллисекундах строго с
+  двумя знаками.
+- Ответы 2xx/3xx логировать как SUCCESS, 4xx как WARN, 5xx как ERROR.
+- Адрес брать из TCP-соединения; не доверять произвольному `X-Forwarded-For`.
+
+## Тесты и проверки
+
+- Не оставлять в рабочем API тестовые ручки, health/testing-модули и демонстрацию
+  логов.
+- Имитацию статусов и тестовые controllers создавать только в тестах.
+- Интеграционные проверки runtime и macros хранить в `tests/` и разбивать по
+  назначению; тесты macros не смешивать с рабочим API.
+- Покрывать рабочее HTTP API, модули, macros, контейнер, логгер, конфигурацию,
+  запуск и остановку приложения.
+- Для закрытых деталей допустимы unit-тесты через `cfg(test)` и `path`.
+- Логи тестов писать во временные директории; окружение менять только у
+  дочерних процессов.
+- Основные проверки: `cargo fmt --all -- --check`, `cargo test --workspace`.
+- Clippy runtime и macros запускать так:
+  `cargo clippy --workspace --all-targets -- -D warnings`.
+
+## Git и коммиты
+
+- После каждого законченного функционального блока делать отдельный commit.
+- Один commit может содержать максимум 5 файлов.
+- Использовать Conventional Commits: `<type>(<optional scope>): <description>`.
+- Допустимые типы: `feat`, `fix`, `refactor`, `docs`, `test`, `build`, `ci`,
   `chore`, `perf`, `revert`.
-- Each commit contains at most five files and exactly one concise English line.
-- Commit messages use lowercase imperative English, stay under 100 characters,
-  and do not end with a period.
+- Создавать ровно одно однострочное сообщение без body и пояснений.
+- Использовать lowercase type и scope, imperative mood и concise English.
+- По возможности укладываться в 100 символов.
+- Не заканчивать commit message точкой.
