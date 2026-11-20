@@ -1,9 +1,13 @@
 use std::sync::Arc;
 
-use arcadia_framework::{ApplicationFactory, Lazy, ProviderToken, RequestExtension};
+use arcadia_framework::{
+    ApplicationFactory, Controller, DynamicModule, Lazy, Lifecycle, Module, ModuleContext,
+    ProviderToken, RequestExtension,
+};
 use arcadia_macros::{controller, injectable, module};
 use axum::{body::Body, http::Request};
 use tower::ServiceExt;
+use utoipa::openapi::OpenApi;
 
 const VALUE_TOKEN: ProviderToken<u32> = ProviderToken::new("value");
 const FACTORY_TOKEN: ProviderToken<String> = ProviderToken::new("factory");
@@ -53,7 +57,7 @@ struct AppController {
     optional_token: Option<Arc<OptionalService>>,
 }
 
-#[controller(path = "/app")]
+#[controller(path = "/app", tag = "App", description = "Application API")]
 #[injectable]
 impl AppController {
     fn new(
@@ -63,6 +67,7 @@ impl AppController {
         Self { service, optional, optional_token }
     }
 
+    #[utoipa::path(get, path = "/")]
     #[get("/")]
     async fn index(&self, RequestExtension(value): RequestExtension<&'static str>) -> &'static str {
         let _ = &self.service;
@@ -72,9 +77,11 @@ impl AppController {
     }
 }
 
+#[derive(Default)]
 #[module(controllers(AppController), providers(AppService, CycleA, CycleB))]
 struct AppModule {}
 
+#[derive(Default)]
 #[module(
     values(VALUE_TOKEN => 7),
     factories(FACTORY_TOKEN => |_: &arcadia_framework::Container| String::from("factory")),
@@ -83,6 +90,43 @@ struct AppModule {}
     token_exports(VALUE_TOKEN)
 )]
 struct ProviderModule {}
+
+#[derive(Default)]
+struct LifecycleProvider;
+
+#[injectable]
+impl LifecycleProvider {
+    fn new() -> Self {
+        Self
+    }
+}
+
+impl Lifecycle for LifecycleProvider {}
+
+#[derive(Default)]
+struct ImportedModule;
+
+impl Module for ImportedModule {
+    fn register(self, _: &mut ModuleContext) {}
+
+    fn openapi() -> OpenApi {
+        OpenApi::default()
+    }
+}
+
+#[derive(Default)]
+#[module(
+    imports(ImportedModule),
+    providers(AppService, LifecycleProvider),
+    exports(AppService),
+    request(AppService),
+    transient(AppService),
+    lifecycle(LifecycleProvider),
+    globals(ImportedModule),
+    dynamic(DynamicModule::new(|_: &mut ModuleContext| {})),
+    controllers(AppController)
+)]
+struct AllOptionsModule {}
 
 #[tokio::test]
 async fn macros_build_module_controller_and_inject_provider() {
@@ -112,4 +156,11 @@ fn module_macro_registers_values_factories_and_exports() {
     assert_eq!(application.container().resolve_token(FACTORY_TOKEN).as_str(), "factory");
     assert_eq!(*application.container().resolve_token(REQUEST_TOKEN), 8);
     assert!(*application.container().resolve_token(TRANSIENT_TOKEN));
+}
+
+#[test]
+fn module_macro_expands_all_registration_groups_and_openapi_metadata() {
+    let application = ApplicationFactory::create(AllOptionsModule::default());
+    assert!(application.container().contains::<AppService>());
+    assert!(!AppController::openapi().paths.paths.is_empty());
 }
