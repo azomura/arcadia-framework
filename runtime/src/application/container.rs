@@ -45,6 +45,10 @@ pub struct Container {
 }
 
 impl Container {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn contains<T: Send + Sync + 'static>(&self) -> bool {
         self.registry.entries.read().unwrap().contains_key(&TypeId::of::<T>())
     }
