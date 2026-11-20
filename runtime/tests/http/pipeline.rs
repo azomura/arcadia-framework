@@ -1,7 +1,15 @@
 use std::sync::{Arc, Mutex};
 
-use arcadia_framework::http::{Guard, HttpPipeline, Interceptor, Middleware, RequestPipe};
-use axum::{Router, body::Body, http::Request, routing::get};
+use arcadia_framework::http::{
+    ExceptionFilter, Guard, HttpException, HttpPipeline, Interceptor, Middleware, RequestPipe,
+};
+use axum::{
+    Router,
+    body::{Body, to_bytes},
+    http::Request,
+    response::IntoResponse,
+    routing::get,
+};
 use tower::ServiceExt;
 
 #[derive(Clone)]
@@ -69,4 +77,34 @@ async fn pipeline_matches_nest_request_order() {
         *trace.lock().unwrap(),
         ["middleware", "guard", "interceptor", "pipe", "interceptor_after", "middleware_after"]
     );
+}
+
+struct RejectGuard;
+
+impl Guard for RejectGuard {
+    fn can_activate(&self, _: &Request<Body>) -> Result<(), HttpException> {
+        Err(HttpException::new(axum::http::StatusCode::IM_A_TEAPOT, "teapot", "rejected"))
+    }
+}
+
+struct CustomFilter;
+
+impl ExceptionFilter for CustomFilter {
+    fn catch(&self, exception: HttpException) -> axum::response::Response {
+        (exception.status(), "filtered").into_response()
+    }
+}
+
+#[tokio::test]
+async fn pipeline_default_and_custom_filter_handle_rejected_requests() {
+    let _default = HttpPipeline::default();
+    let router = HttpPipeline::new()
+        .guard(RejectGuard)
+        .filter(CustomFilter)
+        .apply(Router::new().route("/", get(|| async { "ok" })));
+    let response =
+        router.oneshot(Request::builder().uri("/").body(Body::empty()).unwrap()).await.unwrap();
+
+    assert_eq!(response.status(), axum::http::StatusCode::IM_A_TEAPOT);
+    assert_eq!(to_bytes(response.into_body(), usize::MAX).await.unwrap(), "filtered");
 }
