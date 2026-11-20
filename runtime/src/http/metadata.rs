@@ -1,5 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
+use axum::{
+    extract::FromRequestParts,
+    http::{StatusCode, request::Parts},
+};
+
 #[derive(Clone, Default)]
 pub struct RouteMetadata {
     controller: &'static str,
@@ -23,6 +28,17 @@ impl RouteMetadata {
 
     pub fn handler(&self) -> &'static str {
         self.handler
+    }
+}
+
+impl<S> FromRequestParts<S> for RouteMetadata
+where
+    S: Send + Sync,
+{
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
+        parts.extensions.get::<Self>().cloned().ok_or(StatusCode::INTERNAL_SERVER_ERROR)
     }
 }
 

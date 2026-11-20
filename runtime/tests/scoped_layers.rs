@@ -2,7 +2,8 @@ use std::sync::{Mutex, OnceLock};
 
 use arcadia_framework::ApplicationFactory;
 use arcadia_framework::http::{
-    ExceptionFilter, Guard, HttpException, Interceptor, Middleware, RequestPipe,
+    ExceptionFilter, Guard, HttpException, Interceptor, Middleware, Reflector, RequestPipe,
+    RouteMetadata,
 };
 use arcadia_macros::{controller, injectable, module};
 use axum::{
@@ -151,7 +152,8 @@ impl AppController {
     #[filters(RouteFilter)]
     #[middleware(RouteMiddleware)]
     #[metadata(role = "admin")]
-    async fn index(&self) -> &'static str {
+    async fn index(&self, metadata: RouteMetadata) -> &'static str {
+        assert_eq!(Reflector::get(&metadata, "role"), Some("admin"));
         push("handler");
         "ok"
     }
