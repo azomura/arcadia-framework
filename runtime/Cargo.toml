@@ -26,3 +26,71 @@ utoipa-swagger-ui = { version = "10.0.2", features = ["axum", "vendored"] }
 [dev-dependencies]
 arcadia-macros = { path = "../macros" }
 tower = { version = "0.5", features = ["util"] }
+
+[[test]]
+name = "application_basic"
+path = "tests/application/basic.rs"
+
+[[test]]
+name = "application_container"
+path = "tests/application/container.rs"
+
+[[test]]
+name = "application_async_providers"
+path = "tests/application/async_providers.rs"
+
+[[test]]
+name = "application_lifecycle"
+path = "tests/application/lifecycle.rs"
+
+[[test]]
+name = "application_module_ref"
+path = "tests/application/module_ref.rs"
+
+[[test]]
+name = "application_testing"
+path = "tests/application/testing.rs"
+
+[[test]]
+name = "config"
+path = "tests/config/all.rs"
+
+[[test]]
+name = "core_logger"
+path = "tests/core/logger.rs"
+
+[[test]]
+name = "http_execution"
+path = "tests/http/execution.rs"
+
+[[test]]
+name = "http_layers"
+path = "tests/http/layers.rs"
+
+[[test]]
+name = "http_parameters"
+path = "tests/http/parameters.rs"
+
+[[test]]
+name = "http_pipeline"
+path = "tests/http/pipeline.rs"
+
+[[test]]
+name = "http_primitives"
+path = "tests/http/primitives.rs"
+
+[[test]]
+name = "http_swagger"
+path = "tests/http/swagger.rs"
+
+[[test]]
+name = "macros_integration"
+path = "tests/macros/integration.rs"
+
+[[test]]
+name = "routing_discovery"
+path = "tests/routing/discovery.rs"
+
+[[test]]
+name = "transports"
+path = "tests/transports/all.rs"
