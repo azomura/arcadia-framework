@@ -5,8 +5,9 @@ use std::{
 };
 
 use arcadia_framework::transports::{
-    GraphqlRequest, GraphqlSchema, MicroserviceRouter, RpcRequest, WebSocketContext,
-    WebSocketGateway, graphql_router, websocket_router,
+    GraphqlRequest, GraphqlSchema, MicroserviceRouter, RoomHub, RpcRequest, WebSocketContext,
+    WebSocketFilter, WebSocketGateway, WebSocketGuard, WebSocketInterceptor, WebSocketPipe,
+    WebSocketServer, graphql_router, websocket_router,
 };
 use axum::{body::Body, extract::ws::Message, http::Request};
 use serde_json::json;
@@ -113,4 +114,67 @@ async fn websocket_gateway_exposes_connection_lifecycle() {
     gateway.on_disconnect(&context);
 
     assert_eq!(*events.lock().unwrap(), ["connect", "message", "disconnect"]);
+}
+
+#[test]
+fn websocket_hub_manages_rooms_and_broadcasts() {
+    let hub = RoomHub::new();
+    let mut receiver = hub.register(7);
+    hub.join("chat", 7);
+
+    assert_eq!(hub.connected(), 1);
+    assert_eq!(hub.broadcast("chat", Message::Text("hello".into())), 1);
+    assert!(matches!(receiver.try_recv(), Ok(Message::Text(message)) if message == "hello"));
+
+    hub.leave("chat", 7);
+    assert_eq!(hub.broadcast("chat", Message::Text("ignored".into())), 0);
+    hub.unregister(7);
+    assert_eq!(hub.connected(), 0);
+}
+
+#[test]
+fn websocket_server_components_compose() {
+    struct Allow;
+    impl WebSocketGuard for Allow {
+        fn can_activate(&self, _: &WebSocketContext, _: &Message) -> bool {
+            true
+        }
+    }
+    struct Pipe;
+    impl WebSocketPipe for Pipe {
+        fn transform(&self, message: Message) -> Result<Message, String> {
+            Ok(message)
+        }
+    }
+    struct Interceptor;
+    impl WebSocketInterceptor for Interceptor {}
+    struct Filter;
+    impl WebSocketFilter for Filter {
+        fn catch(&self, _: &WebSocketContext, error: String) -> Option<Message> {
+            Some(Message::Text(error.into()))
+        }
+    }
+
+    let server = WebSocketServer::new(Gateway)
+        .guard(Allow)
+        .pipe(Pipe)
+        .interceptor(Interceptor)
+        .filter(Filter);
+    assert_eq!(server.hub().connected(), 0);
+    let _router = server.router();
+}
+
+#[test]
+fn websocket_json_message_parses_text_and_rejects_control_frames() {
+    let parsed = arcadia_framework::transports::JsonMessage::<serde_json::Value>::parse(
+        Message::Text(r#"{"value":42}"#.into()),
+    )
+    .unwrap();
+    assert_eq!(parsed.0["value"], 42);
+    assert!(
+        arcadia_framework::transports::JsonMessage::<serde_json::Value>::parse(Message::Ping(
+            Vec::new().into()
+        ),)
+        .is_err()
+    );
 }
