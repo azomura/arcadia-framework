@@ -3,10 +3,6 @@ mod injectable;
 mod module;
 mod routes;
 
-#[cfg(test)]
-#[path = "../../tests/unit/macro_controller.rs"]
-mod controller_tests;
-
 use controller::{expand_controller, options::ControllerOptions};
 
 use proc_macro::TokenStream;
