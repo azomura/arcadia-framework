@@ -26,8 +26,8 @@ macros for modules, controllers, routes, and injectable providers).
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.7"
-arcadia-macros = "0.1.7"
+arcadia-framework = "0.1.8"
+arcadia-macros = "0.1.8"
 ```
 
 ```bash
@@ -39,8 +39,8 @@ cargo add arcadia-macros@0.1.7
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
-arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.8" }
+arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.8" }
 ```
 
 ```bash
@@ -99,8 +99,8 @@ OpenAPI, testing и логирование) и `arcadia-macros` (procedural macr
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.7"
-arcadia-macros = "0.1.7"
+arcadia-framework = "0.1.8"
+arcadia-macros = "0.1.8"
 ```
 
 ```bash
@@ -112,8 +112,8 @@ cargo add arcadia-macros@0.1.7
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
-arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.8" }
+arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.8" }
 ```
 
 ```bash

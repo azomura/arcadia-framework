@@ -17,8 +17,8 @@ customizable tracing logger.
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.7"
-arcadia-macros = "0.1.7"
+arcadia-framework = "0.1.8"
+arcadia-macros = "0.1.8"
 ```
 
 ```bash
@@ -30,7 +30,7 @@ cargo add arcadia-macros@0.1.7
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.8" }
 ```
 
 ```bash
@@ -67,8 +67,8 @@ interceptors, filters, WebSockets, transports, OpenAPI, testing helpers и
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.7"
-arcadia-macros = "0.1.7"
+arcadia-framework = "0.1.8"
+arcadia-macros = "0.1.8"
 ```
 
 ```bash
@@ -80,7 +80,7 @@ cargo add arcadia-macros@0.1.7
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.8" }
 ```
 
 ```bash

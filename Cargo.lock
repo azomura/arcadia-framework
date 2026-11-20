@@ -13,7 +13,7 @@ dependencies = [
 
 [[package]]
 name = "arcadia-framework"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "arcadia-macros",
  "axum",
@@ -32,7 +32,7 @@ dependencies = [
 
 [[package]]
 name = "arcadia-macros"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "proc-macro2",
  "quote",
