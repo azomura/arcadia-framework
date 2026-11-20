@@ -6,4 +6,4 @@ mod macros;
 mod subscriber;
 
 pub use file::Logger;
-pub use init::{LogEnvironment, LogOptions, init, init_with_options};
+pub use init::{LogEnvironment, LogOptions, init, init_global, init_with_options};
