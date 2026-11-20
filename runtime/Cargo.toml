@@ -44,6 +44,10 @@ name = "application_lifecycle"
 path = "tests/application/lifecycle.rs"
 
 [[test]]
+name = "application_full_api"
+path = "tests/application/full_api.rs"
+
+[[test]]
 name = "application_module_ref"
 path = "tests/application/module_ref.rs"
 
