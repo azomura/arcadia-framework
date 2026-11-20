@@ -46,6 +46,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
+          cargo check --workspace
           git add runtime/Cargo.toml macros/Cargo.toml Cargo.lock README.md runtime/README.md macros/README.md
           git commit -m "chore(release): bump crates to v${VERSION} [skip ci]"
           git push origin HEAD:main
