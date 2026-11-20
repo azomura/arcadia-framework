@@ -1,5 +1,5 @@
 use arcadia_framework::ApplicationFactory;
-use arcadia_framework::http::{JsonBody, PathParams, QueryParams};
+use arcadia_framework::http::{HttpException, JsonBody, PathParams, Pipe, PipedJson, QueryParams};
 use arcadia_macros::{controller, injectable, module};
 use axum::{body::Body, http::Request};
 use serde::Deserialize;
@@ -18,6 +18,16 @@ struct ItemQuery {
 #[derive(Deserialize)]
 struct ItemBody {
     name: String,
+}
+
+#[derive(Default)]
+struct IncrementPipe;
+
+impl Pipe<ItemBody> for IncrementPipe {
+    fn transform(&self, mut value: ItemBody) -> Result<ItemBody, HttpException> {
+        value.name.push_str("-piped");
+        Ok(value)
+    }
 }
 
 #[derive(Clone)]
@@ -71,4 +81,81 @@ async fn controller_supports_typed_parameter_decorators() {
         .await
         .unwrap();
     assert_eq!(post_response.status(), 200);
+
+    let invalid_query = router_clone()
+        .oneshot(Request::builder().uri("/items/7?page=nope").body(Body::empty()).unwrap());
+    assert_eq!(invalid_query.await.unwrap().status(), 400);
+
+    let invalid_path = router_clone()
+        .oneshot(Request::builder().uri("/items/nope?page=2").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(invalid_path.status(), 400);
+
+    let invalid_body = router_clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/items/")
+                .header("content-type", "application/json")
+                .body(Body::from("not-json"))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(invalid_body.status(), 400);
+}
+
+fn router_clone() -> axum::Router {
+    ApplicationFactory::create(ItemsModule {}).into_router()
+}
+
+#[derive(Clone)]
+struct PipedController;
+
+#[controller(path = "/piped")]
+#[injectable]
+impl PipedController {
+    fn new() -> Self {
+        Self
+    }
+
+    #[post("/")]
+    async fn create(&self, body: PipedJson<ItemBody, IncrementPipe>) -> String {
+        body.into_inner().name
+    }
+}
+
+#[module(controllers(PipedController))]
+struct PipedModule {}
+
+#[tokio::test]
+async fn piped_json_transforms_valid_body_and_rejects_invalid_body() {
+    let router = ApplicationFactory::create(PipedModule {}).into_router();
+    let valid = router
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/piped/")
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"name":"arcadia"}"#))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(valid.status(), 200);
+
+    let invalid = router
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/piped/")
+                .header("content-type", "application/json")
+                .body(Body::from("not-json"))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(invalid.status(), 400);
 }
