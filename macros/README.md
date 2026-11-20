@@ -15,15 +15,15 @@ controllers, routes, and injectable providers.
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.5"
-arcadia-macros = "0.1.5"
+arcadia-framework = "0.1.6"
+arcadia-macros = "0.1.6"
 ```
 
 ### Git release, development branch, or local clone
 
 ```toml
 [dependencies]
-arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.5" }
+arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.6" }
 ```
 
 Replace the tag with `branch = "dev"` for development code or use
@@ -39,15 +39,15 @@ controllers, маршрутов и injectable providers.
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.5"
-arcadia-macros = "0.1.5"
+arcadia-framework = "0.1.6"
+arcadia-macros = "0.1.6"
 ```
 
 ### Git-релиз, development-ветка или локальный clone
 
 ```toml
 [dependencies]
-arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.5" }
+arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.6" }
 ```
 
 Для development-кода замени tag на `branch = "dev"`, а для локального clone

@@ -17,18 +17,18 @@ customizable tracing logger.
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.5"
-arcadia-macros = "0.1.5"
+arcadia-framework = "0.1.6"
+arcadia-macros = "0.1.6"
 ```
 
 ### Git release, development branch, or local clone
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.5" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.6" }
 ```
 
-Replace `tag = "v0.1.5"` with `branch = "dev"` for development code. For a
+Replace `tag = "v0.1.6"` with `branch = "dev"` for development code. For a
 local clone, use `arcadia-framework = { path = "../arcadia-framework/runtime" }`.
 
 ## Русский
@@ -43,18 +43,18 @@ interceptors, filters, WebSockets, transports, OpenAPI, testing helpers и
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.5"
-arcadia-macros = "0.1.5"
+arcadia-framework = "0.1.6"
+arcadia-macros = "0.1.6"
 ```
 
 ### Git-релиз, development-ветка или локальный clone
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.5" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.6" }
 ```
 
-Для development-кода замени `tag = "v0.1.5"` на `branch = "dev"`. Для локального
+Для development-кода замени `tag = "v0.1.6"` на `branch = "dev"`. Для локального
 клона используй `arcadia-framework = { path = "../arcadia-framework/runtime" }`.
 
 ### Лицензия

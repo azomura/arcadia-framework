@@ -25,16 +25,16 @@ macros for modules, controllers, routes, and injectable providers).
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.5"
-arcadia-macros = "0.1.5"
+arcadia-framework = "0.1.6"
+arcadia-macros = "0.1.6"
 ```
 
 ### Install a Git release
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.5" }
-arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.5" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.6" }
+arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.6" }
 ```
 
 ### Install the development branch
@@ -83,16 +83,16 @@ OpenAPI, testing и логирование) и `arcadia-macros` (procedural macr
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.5"
-arcadia-macros = "0.1.5"
+arcadia-framework = "0.1.6"
+arcadia-macros = "0.1.6"
 ```
 
 ### Установка Git-релиза
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.5" }
-arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.5" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.6" }
+arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.6" }
 ```
 
 ### Установка development-ветки
