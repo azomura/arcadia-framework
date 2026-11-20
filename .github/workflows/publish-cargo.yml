@@ -28,6 +28,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.100.0
+          components: rustfmt, clippy
 
       - name: Check and bump package versions
         id: version
