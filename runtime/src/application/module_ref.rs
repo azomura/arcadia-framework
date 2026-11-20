@@ -17,6 +17,9 @@ impl ModuleRef {
     pub fn get<T: Send + Sync + 'static>(&self) -> Arc<T> {
         self.resolve::<T>()
     }
+    pub fn contains<T: Send + Sync + 'static>(&self) -> bool {
+        self.container.contains::<T>() || self.container.contains_async::<T>()
+    }
     pub fn try_resolve<T: Send + Sync + 'static>(&self) -> Option<Arc<T>> {
         self.container.try_resolve::<T>()
     }
