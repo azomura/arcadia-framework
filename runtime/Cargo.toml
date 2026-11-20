@@ -104,5 +104,9 @@ name = "routing_discovery"
 path = "tests/routing/discovery.rs"
 
 [[test]]
+name = "routing_context"
+path = "tests/routing/context.rs"
+
+[[test]]
 name = "transports"
 path = "tests/transports/all.rs"
