@@ -1,5 +1,7 @@
 use axum::{Router, middleware};
 use std::net::SocketAddr;
+use utoipa::openapi::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{http::HttpPipeline, routing::log_request};
 
@@ -39,6 +41,13 @@ impl Application {
 
     pub fn documentation(mut self, enabled: bool) -> Self {
         self.documentation = enabled;
+        self
+    }
+
+    pub fn swagger(mut self, document: OpenApi) -> Self {
+        self.router =
+            self.router.merge(SwaggerUi::new("/docs").url("/docs/openapi.json", document));
+        self.documentation = true;
         self
     }
 
