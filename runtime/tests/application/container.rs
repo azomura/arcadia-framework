@@ -52,6 +52,19 @@ fn container_supports_token_factories_overrides_and_exports() {
 }
 
 #[test]
+fn token_factories_support_request_and_transient_scopes() {
+    let container = Container::new();
+    let request = ProviderToken::<u32>::new("request");
+    let transient = ProviderToken::<u64>::new("transient");
+    container.register_factory(request, Scope::Request, |_: &Container| 1);
+    container.register_factory(transient, Scope::Transient, |_: &Container| 2);
+
+    let scope = container.request_scope();
+    assert!(Arc::ptr_eq(&scope.resolve_token(request), &scope.resolve_token(request)));
+    assert!(!Arc::ptr_eq(&scope.resolve_token(transient), &scope.resolve_token(transient)));
+}
+
+#[test]
 fn container_supports_insert_and_provider_exports() {
     let container = Container::new();
     container.insert(Service(7));

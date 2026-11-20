@@ -70,6 +70,17 @@ async fn application_factory_supports_sync_and_async_bootstrap() {
     assert!(application.container().contains::<Service>());
 }
 
+#[tokio::test]
+async fn application_listen_attempts_to_bind_requested_address() {
+    let application = ApplicationFactory::create(TestModule);
+    tokio::select! {
+        result = application.listen("127.0.0.1:0".parse().unwrap()) => {
+            let _ = result;
+        }
+        _ = tokio::task::yield_now() => {}
+    }
+}
+
 #[test]
 fn application_configures_pipeline() {
     let router = ApplicationFactory::create(TestModule)

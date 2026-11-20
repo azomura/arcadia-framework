@@ -11,3 +11,24 @@ pub(super) async fn shutdown() {
         Err(error) => tracing::error!(error = %error, "Failed to listen for Ctrl+C"),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use axum::response::IntoResponse;
+
+    use super::{not_found, shutdown};
+
+    #[tokio::test]
+    async fn not_found_returns_json_status() {
+        let response = not_found().await.into_response();
+        assert_eq!(response.status(), axum::http::StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn shutdown_waits_for_a_signal() {
+        tokio::select! {
+            _ = shutdown() => panic!("shutdown signal arrived unexpectedly"),
+            _ = tokio::task::yield_now() => {},
+        }
+    }
+}
