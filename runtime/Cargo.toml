@@ -84,6 +84,10 @@ name = "http_primitives"
 path = "tests/http/primitives.rs"
 
 [[test]]
+name = "http_request"
+path = "tests/http/request.rs"
+
+[[test]]
 name = "http_swagger"
 path = "tests/http/swagger.rs"
 
