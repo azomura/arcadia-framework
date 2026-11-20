@@ -1,0 +1,52 @@
+# Formatting rules for the Arcadia framework.
+# Применить: python tools/format.py
+# Проверить без изменений: python tools/format.py --check
+
+[scope]
+paths = ["backend/src", "backend/macros/src", "backend/macros/runtime/src", "backend/tests", "launcher/src", "run.rs"]
+
+[rustfmt]
+max_width = 100
+use_small_heuristics = "Max"
+fn_params_layout = "Compressed"
+edition = "2024"
+
+[limits]
+max_file_lines = 100
+absolute_max_file_lines = 120
+# Только явно выбранные исключения могут превышать обычные 100 строк.
+exceptional_files = []
+
+[layout]
+# Короткое выражение целиком в одну строку, длинное — по вызовам методов.
+pack_method_chains = true
+# Несколько вызовов на строке до max_width, затем следующая группа вызовов.
+compact_where = true
+# where, ограничения и открывающая скобка вместе, если помещаются.
+join_closing_calls = true
+# ).into());, ).try_init()?, ).await без лишнего переноса.
+join_assignment_start = true
+# Не оставлять строку только с let имя =.
+compact_call_arguments = true
+# Соседние простые аргументы вызова объединяются, если помещаются в max_width.
+remove_rustfmt_skip = true
+# Пользовательское оформление выполняется после rustfmt, исключения в коде не нужны.
+
+# Эти правила требуют понимания логики: они обязательны при редактировании,
+# но форматтер не меняет бизнес-логику, не придумывает имена и не делит модули сам.
+[review]
+short_expressions = "one_line_if_fits"
+function_signatures = "one_line_if_fits_otherwise_group_parameters"
+long_expressions = "wrap_at_method_calls"
+conditions = "extract_long_checks_into_named_variables"
+assignments = "one_line_if_fits_otherwise_start_expression_on_same_line"
+blank_lines = "separate_logical_steps_not_every_statement"
+logical_steps = ["setup", "validation", "execution", "result"]
+filesystem_steps = ["validation", "directory", "naming", "opening", "result"]
+related_variables = "keep_together"
+short_if_else = "prefer_match_for_simple_values_or_actions"
+indentation = "follow_block_nesting"
+large_files = "split_by_responsibility_before_exceeding_100_lines"
+unrelated_actions = "never_join_to_save_lines"
+coverage = "all_current_backend_launcher_macros_tests_and_runner_files"
+examples = "apply_rule_to_all_similar_code_not_just_the_shown_example"

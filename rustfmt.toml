@@ -1,0 +1,5 @@
+# Generated from formatting.toml by tools/format.py; edit formatting.toml instead.
+max_width = 100
+use_small_heuristics = "Max"
+fn_params_layout = "Compressed"
+edition = "2024"
