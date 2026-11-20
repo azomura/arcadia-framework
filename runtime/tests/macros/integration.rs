@@ -5,6 +5,11 @@ use arcadia_macros::{controller, injectable, module};
 use axum::{body::Body, http::Request};
 use tower::ServiceExt;
 
+const VALUE_TOKEN: ProviderToken<u32> = ProviderToken::new("value");
+const FACTORY_TOKEN: ProviderToken<String> = ProviderToken::new("factory");
+const REQUEST_TOKEN: ProviderToken<u64> = ProviderToken::new("request");
+const TRANSIENT_TOKEN: ProviderToken<bool> = ProviderToken::new("transient");
+
 #[derive(Clone)]
 struct AppService;
 struct OptionalService;
@@ -70,6 +75,15 @@ impl AppController {
 #[module(controllers(AppController), providers(AppService, CycleA, CycleB))]
 struct AppModule {}
 
+#[module(
+    values(VALUE_TOKEN => 7),
+    factories(FACTORY_TOKEN => |_: &arcadia_framework::Container| String::from("factory")),
+    request_factories(REQUEST_TOKEN => |_: &arcadia_framework::Container| 8_u64),
+    transient_factories(TRANSIENT_TOKEN => |_: &arcadia_framework::Container| true),
+    token_exports(VALUE_TOKEN)
+)]
+struct ProviderModule {}
+
 #[tokio::test]
 async fn macros_build_module_controller_and_inject_provider() {
     let response = ApplicationFactory::create(AppModule {})
@@ -89,4 +103,13 @@ fn lazy_forward_ref_breaks_cyclic_provider_resolution() {
     let second = first.b.get();
 
     assert!(Arc::ptr_eq(&first, &second.a));
+}
+
+#[test]
+fn module_macro_registers_values_factories_and_exports() {
+    let application = ApplicationFactory::create(ProviderModule {});
+    assert_eq!(*application.container().resolve_token(VALUE_TOKEN), 7);
+    assert_eq!(application.container().resolve_token(FACTORY_TOKEN).as_str(), "factory");
+    assert_eq!(*application.container().resolve_token(REQUEST_TOKEN), 8);
+    assert!(*application.container().resolve_token(TRANSIENT_TOKEN));
 }
