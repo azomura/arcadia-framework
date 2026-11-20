@@ -95,6 +95,38 @@ impl ExceptionFilter for CustomFilter {
     }
 }
 
+struct RejectMiddleware;
+
+impl Middleware for RejectMiddleware {
+    fn before(&self, _: &mut Request<Body>) -> Result<(), HttpException> {
+        Err(HttpException::bad_request("middleware"))
+    }
+}
+
+struct RejectPipe;
+
+impl RequestPipe for RejectPipe {
+    fn transform_request(&self, _: &mut Request<Body>) -> Result<(), HttpException> {
+        Err(HttpException::bad_request("pipe"))
+    }
+}
+
+struct RejectBeforeInterceptor;
+
+impl Interceptor for RejectBeforeInterceptor {
+    fn before(&self, _: &Request<Body>) -> Result<(), HttpException> {
+        Err(HttpException::bad_request("interceptor"))
+    }
+}
+
+struct RejectAfterInterceptor;
+
+impl Interceptor for RejectAfterInterceptor {
+    fn after(&self, _: &mut axum::response::Response) -> Result<(), HttpException> {
+        Err(HttpException::bad_request("after"))
+    }
+}
+
 #[tokio::test]
 async fn pipeline_default_and_custom_filter_handle_rejected_requests() {
     let _default = HttpPipeline::default();
@@ -107,4 +139,21 @@ async fn pipeline_default_and_custom_filter_handle_rejected_requests() {
 
     assert_eq!(response.status(), axum::http::StatusCode::IM_A_TEAPOT);
     assert_eq!(to_bytes(response.into_body(), usize::MAX).await.unwrap(), "filtered");
+}
+
+#[tokio::test]
+async fn pipeline_handles_middleware_pipe_and_interceptor_errors() {
+    for pipeline in [
+        HttpPipeline::new().middleware(RejectMiddleware),
+        HttpPipeline::new().pipe(RejectPipe),
+        HttpPipeline::new().interceptor(RejectBeforeInterceptor),
+        HttpPipeline::new().interceptor(RejectAfterInterceptor),
+    ] {
+        let response = pipeline
+            .apply(Router::new().route("/", get(|| async { "ok" })))
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), axum::http::StatusCode::BAD_REQUEST);
+    }
 }
