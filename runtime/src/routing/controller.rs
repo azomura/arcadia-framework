@@ -1,5 +1,4 @@
 use axum::Router;
-use utoipa::openapi::OpenApi;
 
 use crate::Container;
 
@@ -11,5 +10,4 @@ pub trait Controller: Clone + Send + Sync + 'static {
     {
         self.routes()
     }
-    fn openapi() -> OpenApi;
 }

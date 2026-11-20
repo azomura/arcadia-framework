@@ -1,5 +1,3 @@
-use utoipa::openapi::OpenApi;
-
 use super::{Module, ModuleContext};
 
 type Registration = Box<dyn FnOnce(&mut ModuleContext) + Send>;
@@ -17,10 +15,6 @@ impl DynamicModule {
 impl Module for DynamicModule {
     fn register(self, context: &mut ModuleContext) {
         (self.registration)(context);
-    }
-
-    fn openapi() -> OpenApi {
-        OpenApi::default()
     }
 }
 

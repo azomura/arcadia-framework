@@ -1,16 +1,7 @@
-use std::any::TypeId;
-
-use utoipa::openapi::OpenApi;
-
 use super::ModuleContext;
 
 pub trait Module {
     fn register(self, context: &mut ModuleContext);
-    fn openapi() -> OpenApi;
-
-    fn exports() -> Vec<TypeId> {
-        Vec::new()
-    }
 
     fn into_router(self) -> axum::Router
     where
