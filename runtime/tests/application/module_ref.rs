@@ -1,6 +1,8 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use arcadia_framework::{ApplicationFactory, Container, Injectable, Module, ModuleContext};
+use arcadia_framework::{
+    ApplicationFactory, Container, Injectable, Module, ModuleContext, ProviderToken,
+};
 
 static PRIVATE_VISIBLE: AtomicBool = AtomicBool::new(false);
 
@@ -81,4 +83,29 @@ fn module_ref_respects_module_provider_scope() {
 
     assert!(PRIVATE_VISIBLE.load(Ordering::SeqCst));
     assert!(!context.module_ref().contains::<PrivateService>());
+}
+
+#[tokio::test]
+async fn module_ref_exposes_type_token_async_and_request_operations() {
+    struct AsyncService;
+    let mut context = ModuleContext::new();
+    let token = ProviderToken::<String>::new("module-ref-token");
+    context.provide::<Service>();
+    context.value(token.clone(), String::from("token"));
+    context.async_factory::<AsyncService, _, _>(|_: Container| async { AsyncService });
+    let module_ref = context.module_ref();
+
+    assert!(module_ref.contains::<Service>());
+    assert!(module_ref.contains::<AsyncService>());
+    assert!(!module_ref.contains::<PrivateService>());
+    assert_eq!(
+        module_ref.get::<Service>().as_ref() as *const _,
+        module_ref.resolve::<Service>().as_ref() as *const _
+    );
+    assert!(module_ref.try_resolve::<PrivateService>().is_none());
+    assert_eq!(module_ref.resolve_token(token).as_str(), "token");
+    let _async_service = module_ref.resolve_async::<AsyncService>().await;
+    let _created = module_ref.create::<Service>();
+    let request = module_ref.request_scope();
+    assert!(request.contains::<Service>());
 }
