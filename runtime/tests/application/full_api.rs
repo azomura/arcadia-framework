@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use arcadia_framework::http::HttpPipeline;
 use arcadia_framework::{
     ApplicationFactory, Container, Injectable, Module, ModuleContext, ProviderToken, Scope,
     TestingModule,
@@ -67,4 +68,13 @@ async fn application_factory_supports_sync_and_async_bootstrap() {
     assert!(application.container().contains::<Service>());
     let application = ApplicationFactory::create_async(TestModule).await;
     assert!(application.container().contains::<Service>());
+}
+
+#[test]
+fn application_configures_pipeline() {
+    let router = ApplicationFactory::create(TestModule)
+        .documentation(false)
+        .pipeline(HttpPipeline::default())
+        .into_router();
+    let _ = router;
 }
