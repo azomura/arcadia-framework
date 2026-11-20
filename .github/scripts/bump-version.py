@@ -5,6 +5,7 @@ from pathlib import Path
 
 
 PACKAGE_FILES = (Path("runtime/Cargo.toml"), Path("macros/Cargo.toml"))
+README_FILES = (Path("README.md"), Path("runtime/README.md"), Path("macros/README.md"))
 
 
 def read_version(text: str) -> str:
@@ -40,6 +41,12 @@ def main() -> None:
         for path in PACKAGE_FILES:
             text = path.read_text()
             path.write_text(text.replace(f'version = "{version}"', f'version = "{updated}"', 1))
+        for path in README_FILES:
+            text = path.read_text()
+            text = re.sub(r'(arcadia-framework = ")[0-9]+\.[0-9]+\.[0-9]+("?)', rf'\g<1>{updated}\g<2>', text)
+            text = re.sub(r'(arcadia-macros = ")[0-9]+\.[0-9]+\.[0-9]+("?)', rf'\g<1>{updated}\g<2>', text)
+            text = re.sub(r'(tag = "v)[0-9]+\.[0-9]+\.[0-9]+("?)', rf'\g<1>{updated}\g<2>', text)
+            path.write_text(text)
         version = updated
 
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
