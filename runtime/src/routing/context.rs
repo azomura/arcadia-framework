@@ -1,5 +1,6 @@
 use axum::{Extension, Router, middleware};
 
+use crate::discovery::DiscoveryService;
 use crate::{
     Container, Controller, GlobalModule, Injectable, Lifecycle, Module, ModuleRef, ProviderToken,
     Scope,
@@ -66,6 +67,10 @@ impl ModuleContext {
 
     pub fn module_ref(&self) -> ModuleRef {
         ModuleRef::new(self.container.clone())
+    }
+
+    pub fn discovery(&self) -> DiscoveryService {
+        DiscoveryService::new(self.container.clone())
     }
 
     pub fn controller<T: Controller + Injectable>(&mut self) {

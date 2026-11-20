@@ -7,6 +7,7 @@ use std::{
 };
 
 use super::{Injectable, Scope};
+use crate::discovery::ProviderDescriptor;
 
 mod imports;
 mod resolution;
@@ -57,6 +58,21 @@ impl Container {
 
     pub fn contains<T: Send + Sync + 'static>(&self) -> bool {
         self.registry.entries.read().unwrap().contains_key(&TypeId::of::<T>())
+    }
+
+    pub(crate) fn provider_descriptors(&self) -> Vec<ProviderDescriptor> {
+        let entries = self.registry.entries.read().unwrap();
+        let tokens = self.registry.tokens.read().unwrap();
+        let mut providers = entries
+            .values()
+            .map(|entry| ProviderDescriptor { name: entry.name, scope: entry.scope, token: None })
+            .collect::<Vec<_>>();
+        providers.extend(tokens.values().map(|entry| ProviderDescriptor {
+            name: entry.name,
+            scope: entry.scope,
+            token: Some(entry.name),
+        }));
+        providers
     }
 
     pub fn register<T: Injectable + Send + Sync + 'static>(&self, scope: Scope) {
