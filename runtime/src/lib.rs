@@ -1,5 +1,6 @@
 pub mod application;
 pub mod config;
+pub mod core;
 pub mod discovery;
 pub mod http;
 pub mod routing;
