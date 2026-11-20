@@ -1,3 +1,4 @@
+mod decorators;
 mod exception;
 mod execution;
 mod filter;
@@ -9,6 +10,7 @@ mod pipe;
 mod pipeline;
 mod validation;
 
+pub use decorators::{JsonBody, PathParams, QueryParams};
 pub use exception::{HttpException, HttpResult};
 pub use execution::ExecutionContext;
 pub use filter::{ExceptionFilter, JsonExceptionFilter};
