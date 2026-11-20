@@ -21,15 +21,39 @@ arcadia-framework = "0.1.7"
 arcadia-macros = "0.1.7"
 ```
 
-### Git release, development branch, or local clone
+```bash
+cargo add arcadia-framework@0.1.7
+cargo add arcadia-macros@0.1.7
+```
+
+### Git release
 
 ```toml
 [dependencies]
 arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
 ```
 
-Replace `tag = "v0.1.7"` with `branch = "dev"` for development code. For a
-local clone, use `arcadia-framework = { path = "../arcadia-framework/runtime" }`.
+```bash
+cargo add arcadia-framework --git https://github.com/azomura/arcadia-framework.git --tag v0.1.7
+```
+
+### Development branch
+
+```toml
+[dependencies]
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", branch = "dev" }
+```
+
+```bash
+cargo add arcadia-framework --git https://github.com/azomura/arcadia-framework.git --branch dev
+```
+
+### Local clone
+
+```toml
+[dependencies]
+arcadia-framework = { path = "../arcadia-framework/runtime" }
+```
 
 ## Русский
 
@@ -47,15 +71,39 @@ arcadia-framework = "0.1.7"
 arcadia-macros = "0.1.7"
 ```
 
-### Git-релиз, development-ветка или локальный clone
+```bash
+cargo add arcadia-framework@0.1.7
+cargo add arcadia-macros@0.1.7
+```
+
+### Git-релиз
 
 ```toml
 [dependencies]
 arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
 ```
 
-Для development-кода замени `tag = "v0.1.7"` на `branch = "dev"`. Для локального
-клона используй `arcadia-framework = { path = "../arcadia-framework/runtime" }`.
+```bash
+cargo add arcadia-framework --git https://github.com/azomura/arcadia-framework.git --tag v0.1.7
+```
+
+### Development-ветка
+
+```toml
+[dependencies]
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", branch = "dev" }
+```
+
+```bash
+cargo add arcadia-framework --git https://github.com/azomura/arcadia-framework.git --branch dev
+```
+
+### Локальный clone
+
+```toml
+[dependencies]
+arcadia-framework = { path = "../arcadia-framework/runtime" }
+```
 
 ### Лицензия
 

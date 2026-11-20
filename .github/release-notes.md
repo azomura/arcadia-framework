@@ -14,6 +14,8 @@ architecture and developer experience of NestJS.
 - customizable tracing logger with colored console output and file logging;
 - procedural macros for modules, controllers, routes, and injectable providers.
 
+Full changelog: https://github.com/azomura/arcadia-framework/blob/main/CHANGELOG.md
+
 ## Русская версия
 
 Arcadia Framework — модульный backend-фреймворк на Rust, вдохновлённый
@@ -27,3 +29,5 @@ Arcadia Framework — модульный backend-фреймворк на Rust, �
 - OpenAPI metadata и Swagger UI, подключаемый явно;
 - настраиваемый tracing-логгер с цветным выводом и записью в файлы;
 - procedural macros для модулей, controllers, маршрутов и injectable providers.
+
+Полный changelog: https://github.com/azomura/arcadia-framework/blob/main/CHANGELOG.md

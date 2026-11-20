@@ -3,6 +3,7 @@
 Website: <https://frameworks.ilnazik.dev/arcadia><br>
 Repository: <https://github.com/azomura/arcadia-framework><br>
 License: [MIT](LICENSE)
+Changelog: <https://github.com/azomura/arcadia-framework/blob/main/CHANGELOG.md>
 
 ## English
 
@@ -29,6 +30,11 @@ arcadia-framework = "0.1.7"
 arcadia-macros = "0.1.7"
 ```
 
+```bash
+cargo add arcadia-framework@0.1.7
+cargo add arcadia-macros@0.1.7
+```
+
 ### Install a Git release
 
 ```toml
@@ -37,12 +43,22 @@ arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", 
 arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
 ```
 
+```bash
+cargo add arcadia-framework --git https://github.com/azomura/arcadia-framework.git --tag v0.1.7
+cargo add arcadia-macros --git https://github.com/azomura/arcadia-framework.git --tag v0.1.7
+```
+
 ### Install the development branch
 
 ```toml
 [dependencies]
 arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", branch = "dev" }
 arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", branch = "dev" }
+```
+
+```bash
+cargo add arcadia-framework --git https://github.com/azomura/arcadia-framework.git --branch dev
+cargo add arcadia-macros --git https://github.com/azomura/arcadia-framework.git --branch dev
 ```
 
 ### Clone and build locally
@@ -87,12 +103,22 @@ arcadia-framework = "0.1.7"
 arcadia-macros = "0.1.7"
 ```
 
+```bash
+cargo add arcadia-framework@0.1.7
+cargo add arcadia-macros@0.1.7
+```
+
 ### Установка Git-релиза
 
 ```toml
 [dependencies]
 arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
 arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
+```
+
+```bash
+cargo add arcadia-framework --git https://github.com/azomura/arcadia-framework.git --tag v0.1.7
+cargo add arcadia-macros --git https://github.com/azomura/arcadia-framework.git --tag v0.1.7
 ```
 
 ### Установка development-ветки
@@ -103,7 +129,16 @@ arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", 
 arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", branch = "dev" }
 ```
 
+```bash
+cargo add arcadia-framework --git https://github.com/azomura/arcadia-framework.git --branch dev
+cargo add arcadia-macros --git https://github.com/azomura/arcadia-framework.git --branch dev
+```
+
 ### Лицензия
 
 Проект распространяется по лицензии [MIT](LICENSE). Полный текст лицензии
 находится в файле `LICENSE`.
+
+### Changelog
+
+Полная история изменений: <https://github.com/azomura/arcadia-framework/blob/main/CHANGELOG.md>

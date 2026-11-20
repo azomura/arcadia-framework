@@ -19,15 +19,39 @@ arcadia-framework = "0.1.7"
 arcadia-macros = "0.1.7"
 ```
 
-### Git release, development branch, or local clone
+```bash
+cargo add arcadia-framework@0.1.7
+cargo add arcadia-macros@0.1.7
+```
+
+### Git release
 
 ```toml
 [dependencies]
 arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
 ```
 
-Replace the tag with `branch = "dev"` for development code or use
-`arcadia-macros = { path = "../arcadia-framework/macros" }` for a local clone.
+```bash
+cargo add arcadia-macros --git https://github.com/azomura/arcadia-framework.git --tag v0.1.7
+```
+
+### Development branch
+
+```toml
+[dependencies]
+arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", branch = "dev" }
+```
+
+```bash
+cargo add arcadia-macros --git https://github.com/azomura/arcadia-framework.git --branch dev
+```
+
+### Local clone
+
+```toml
+[dependencies]
+arcadia-macros = { path = "../arcadia-framework/macros" }
+```
 
 ## Русский
 
@@ -43,15 +67,39 @@ arcadia-framework = "0.1.7"
 arcadia-macros = "0.1.7"
 ```
 
-### Git-релиз, development-ветка или локальный clone
+```bash
+cargo add arcadia-framework@0.1.7
+cargo add arcadia-macros@0.1.7
+```
+
+### Git-релиз
 
 ```toml
 [dependencies]
 arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.7" }
 ```
 
-Для development-кода замени tag на `branch = "dev"`, а для локального clone
-используй `arcadia-macros = { path = "../arcadia-framework/macros" }`.
+```bash
+cargo add arcadia-macros --git https://github.com/azomura/arcadia-framework.git --tag v0.1.7
+```
+
+### Development-ветка
+
+```toml
+[dependencies]
+arcadia-macros = { git = "https://github.com/azomura/arcadia-framework.git", branch = "dev" }
+```
+
+```bash
+cargo add arcadia-macros --git https://github.com/azomura/arcadia-framework.git --branch dev
+```
+
+### Локальный clone
+
+```toml
+[dependencies]
+arcadia-macros = { path = "../arcadia-framework/macros" }
+```
 
 ### Лицензия
 
