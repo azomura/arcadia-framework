@@ -81,6 +81,7 @@ fn config_reader_parses_supported_types_and_defaults() {
     assert_eq!(reader.duration(&seconds, 60).unwrap().as_secs(), 12);
     assert_eq!(reader.optional_read(&missing).unwrap(), None);
     assert_eq!(reader.read(&missing).unwrap(), "fallback");
+    assert_eq!(reader.parse_or(&missing, "invalid", 55_u32).unwrap(), 55);
 }
 
 #[test]
@@ -94,9 +95,13 @@ fn config_rejects_invalid_values_and_validates_sections() {
     assert!(reader.number(&port, 100).is_err());
     assert!(reader.date(&date).is_err());
     assert!(reader.parse::<u16>(&bad, "invalid").is_err());
+    assert!(reader.parse_or::<u16>(&bad, "invalid", 1).is_err());
+    assert!(reader.comma_separated::<u16>(&bad, "invalid").is_err());
+    assert!(reader.duration(&port, 100).is_err());
     assert!(validate_text(&text, " ").is_err());
     assert!(validate_text(&text, "arcadia").is_ok());
     assert!(Section::load(&Reader(values(&[("PORT", "8080")]))).is_ok());
+    assert!(ConfigValues::default().with_files(&["/missing/arcadia.env".into()]).is_err());
 }
 
 #[test]
