@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use arcadia_framework::{ApplicationFactory, ProviderToken, RequestExtension};
+use arcadia_framework::{ApplicationFactory, Lazy, ProviderToken, RequestExtension};
 use arcadia_macros::{controller, injectable, module};
 use axum::{body::Body, http::Request};
 use tower::ServiceExt;
@@ -9,6 +9,30 @@ use tower::ServiceExt;
 struct AppService;
 struct OptionalService;
 const OPTIONAL_TOKEN: ProviderToken<OptionalService> = ProviderToken::new("optional");
+
+#[derive(Clone)]
+struct CycleA {
+    b: Lazy<CycleB>,
+}
+
+#[injectable]
+impl CycleA {
+    fn new(b: Lazy<CycleB>) -> Self {
+        Self { b }
+    }
+}
+
+#[derive(Clone)]
+struct CycleB {
+    a: Arc<CycleA>,
+}
+
+#[injectable]
+impl CycleB {
+    fn new(a: Arc<CycleA>) -> Self {
+        Self { a }
+    }
+}
 
 #[injectable]
 impl AppService {
@@ -43,7 +67,7 @@ impl AppController {
     }
 }
 
-#[module(controllers(AppController), providers(AppService))]
+#[module(controllers(AppController), providers(AppService, CycleA, CycleB))]
 struct AppModule {}
 
 #[tokio::test]
@@ -56,4 +80,13 @@ async fn macros_build_module_controller_and_inject_provider() {
         .unwrap();
 
     assert_eq!(response.status(), 200);
+}
+
+#[test]
+fn lazy_forward_ref_breaks_cyclic_provider_resolution() {
+    let application = ApplicationFactory::create(AppModule {});
+    let first = application.container().resolve::<CycleA>();
+    let second = first.b.get();
+
+    assert!(Arc::ptr_eq(&first, &second.a));
 }

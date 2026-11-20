@@ -34,12 +34,22 @@ fn injectable(implementation: &mut ItemImpl) -> syn::Result<proc_macro2::TokenSt
             .position(|attribute| attribute.path().is_ident("inject"))
             .map(|index| argument.attrs.remove(index).parse_args::<Expr>())
             .transpose()?;
-        let (ty, optional) = dependency(&argument.ty)?;
-        dependencies.push(match (token, optional) {
-            (Some(token), false) => quote!(container.resolve_token::<#ty>(#token)),
-            (None, false) => quote!(container.resolve::<#ty>()),
-            (None, true) => quote!(container.try_resolve::<#ty>()),
-            (Some(token), true) => quote!(container.try_resolve_token::<#ty>(#token)),
+        let (ty, optional, lazy) = dependency(&argument.ty)?;
+        dependencies.push(match (token, optional, lazy) {
+            (Some(token), false, false) => quote!(container.resolve_token::<#ty>(#token)),
+            (None, false, false) => quote!(container.resolve::<#ty>()),
+            (None, true, false) => quote!(container.try_resolve::<#ty>()),
+            (Some(token), true, false) => quote!(container.try_resolve_token::<#ty>(#token)),
+            (None, false, true) => quote!(container.lazy::<#ty>()),
+            (_, true, true) => {
+                return Err(syn::Error::new_spanned(argument, "Lazy cannot be optional"));
+            }
+            (Some(_), false, true) => {
+                return Err(syn::Error::new_spanned(
+                    argument,
+                    "Lazy token injection is unsupported",
+                ));
+            }
         });
     }
 
@@ -53,7 +63,7 @@ fn injectable(implementation: &mut ItemImpl) -> syn::Result<proc_macro2::TokenSt
     })
 }
 
-fn dependency(ty: &Type) -> syn::Result<(Type, bool)> {
+fn dependency(ty: &Type) -> syn::Result<(Type, bool, bool)> {
     let Type::Path(path) = ty else {
         return Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>"));
     };
@@ -66,7 +76,10 @@ fn dependency(ty: &Type) -> syn::Result<(Type, bool)> {
         return Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>"));
     };
     if segment.ident == "Arc" {
-        return Ok((inner.clone(), false));
+        return Ok((inner.clone(), false, false));
+    }
+    if segment.ident == "Lazy" {
+        return Ok((inner.clone(), false, true));
     }
     if !optional {
         return Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>"));
@@ -80,7 +93,7 @@ fn dependency(ty: &Type) -> syn::Result<(Type, bool)> {
     };
     match inner_arguments.args.first() {
         Some(GenericArgument::Type(dependency)) if inner_segment.ident == "Arc" => {
-            Ok((dependency.clone(), optional))
+            Ok((dependency.clone(), optional, false))
         }
         _ => Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>")),
     }
