@@ -118,6 +118,7 @@ fn dynamic_and_forward_modules_register_their_callbacks() {
     let dynamic = DynamicModule::new(|context: &mut ModuleContext| {
         context.value(ProviderToken::<u32>::new("dynamic"), 7);
     });
+    assert!(DynamicModule::openapi().paths.paths.is_empty());
     let (container, _) = dynamic.into_parts();
     assert_eq!(*container.resolve_token(ProviderToken::<u32>::new("dynamic")), 7);
 

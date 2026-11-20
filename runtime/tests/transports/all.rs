@@ -171,6 +171,11 @@ fn websocket_hub_manages_rooms_and_broadcasts() {
     hub.unregister(7);
     assert_eq!(hub.connected(), 0);
     assert_eq!(hub.broadcast("missing", Message::Text("ignored".into())), 0);
+
+    let dropped = hub.register(9);
+    drop(dropped);
+    hub.join("closed", 9);
+    assert_eq!(hub.broadcast("closed", Message::Text("ignored".into())), 0);
 }
 
 #[test]

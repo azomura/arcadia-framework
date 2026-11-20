@@ -10,6 +10,7 @@ fn execution_context_exposes_http_transport_metadata() {
     assert_eq!(context.transport(), TransportType::Http);
     assert_eq!(context.get_type(), TransportType::Http);
     assert!(context.is_http());
+    assert_eq!(context.metadata().controller(), "UsersController");
     assert_eq!(context.class_name(), "UsersController");
     assert_eq!(context.handler_name(), "list");
     assert_eq!(context.get_class(), "UsersController");
