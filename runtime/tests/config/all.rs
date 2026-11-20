@@ -51,7 +51,7 @@ fn config_values_read_optional_and_merge_files() {
     let path = root.join(format!("arcadia-config-{suffix}.env"));
     fs::write(&path, "PORT=8080\nHOST=127.0.0.1\n").unwrap();
 
-    let merged = values(&[("PORT", "9000")]).with_files(&[path.clone()]).unwrap();
+    let merged = values(&[("PORT", "9000")]).with_files(std::slice::from_ref(&path)).unwrap();
     assert_eq!(merged.optional("HOST").unwrap().as_deref(), Some("127.0.0.1"));
     assert_eq!(merged.read(&ConfigField::new("PORT", "port")).unwrap(), "9000");
     assert!(merged.contains("HOST"));
