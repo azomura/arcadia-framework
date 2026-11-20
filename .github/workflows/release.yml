@@ -1,4 +1,4 @@
-name: Prepare release
+name: Prepare and publish release
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 concurrency:
   group: release-main
@@ -17,16 +18,20 @@ jobs:
   validate:
     uses: ./.github/workflows/validate.yml
 
-  release:
+  version:
     needs: validate
     if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      ref: ${{ steps.commit.outputs.ref || steps.current.outputs.ref }}
 
     steps:
       - name: Checkout main history
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          fetch-tags: true
 
       - name: Check and bump package versions
         id: version
@@ -38,6 +43,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Commit automatic version bump
+        id: commit
         if: steps.version.outputs.bumped == 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -45,23 +51,58 @@ jobs:
           git add runtime/Cargo.toml macros/Cargo.toml Cargo.lock README.md runtime/README.md macros/README.md
           git commit -m "chore(release): bump crates to v${VERSION} [skip ci]"
           git push origin HEAD:main
+          echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Use current commit
+        id: current
+        if: steps.version.outputs.bumped != 'true'
+        run: echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Create release tag
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          git tag -a "v${VERSION}" -m "Release v${VERSION}"
-          git push origin "v${VERSION}"
+          git fetch --tags origin
+          if ! git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            git tag -a "v${VERSION}" -m "Release v${VERSION}"
+            git push origin "v${VERSION}"
+          fi
+
+  publish-cargo:
+    needs: version
+    uses: ./.github/workflows/publish-cargo.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
+      ref: ${{ needs.version.outputs.ref }}
+    secrets: inherit
+
+  publish-ghcr:
+    needs: version
+    uses: ./.github/workflows/publish-ghcr.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
+      ref: ${{ needs.version.outputs.ref }}
+    secrets: inherit
+
+  github-release:
+    needs: [version, publish-cargo, publish-ghcr]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.ref }}
 
       - name: Prepare release description
         env:
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ needs.version.outputs.version }}
         run: sed "s/{{VERSION}}/${VERSION}/g" .github/release-notes.md > release-notes.md
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ needs.version.outputs.version }}
         run: |
           gh release create "v${VERSION}" \
             --verify-tag \

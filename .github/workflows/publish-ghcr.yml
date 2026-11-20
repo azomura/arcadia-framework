@@ -1,10 +1,14 @@
 name: Publish GHCR package
 
 on:
-  push:
-    tags:
-      - "v*"
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      ref:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -15,8 +19,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout tagged release
+      - name: Checkout release commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -31,7 +37,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=ref,event=tag
+            type=raw,value=v${{ inputs.version }}
             type=raw,value=latest
 
       - name: Build and publish package image
