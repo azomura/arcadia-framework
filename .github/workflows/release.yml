@@ -1,0 +1,69 @@
+name: Prepare release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    uses: ./.github/workflows/validate.yml
+
+  release:
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip ci]')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check and bump package versions
+        id: version
+        run: python3 .github/scripts/bump-version.py
+
+      - name: Configure release identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit automatic version bump
+        if: steps.version.outputs.bumped == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git add runtime/Cargo.toml macros/Cargo.toml Cargo.lock README.md runtime/README.md macros/README.md
+          git commit -m "chore(release): bump crates to v${VERSION} [skip ci]"
+          git push origin HEAD:main
+
+      - name: Create release tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"
+
+      - name: Prepare release description
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: sed "s/{{VERSION}}/${VERSION}/g" .github/release-notes.md > release-notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v${VERSION}" \
+            --verify-tag \
+            --title "Arcadia Framework v${VERSION}" \
+            --notes-file release-notes.md
