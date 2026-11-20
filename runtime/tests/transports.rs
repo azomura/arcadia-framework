@@ -1,8 +1,12 @@
-use std::{future::Future, pin::Pin};
+use std::{
+    future::Future,
+    pin::Pin,
+    sync::{Arc, Mutex},
+};
 
 use arcadia_framework::transports::{
-    GraphqlRequest, GraphqlSchema, MicroserviceRouter, RpcRequest, WebSocketGateway,
-    graphql_router, websocket_router,
+    GraphqlRequest, GraphqlSchema, MicroserviceRouter, RpcRequest, WebSocketContext,
+    WebSocketGateway, graphql_router, websocket_router,
 };
 use axum::{body::Body, extract::ws::Message, http::Request};
 use serde_json::json;
@@ -72,4 +76,41 @@ async fn websocket_gateway_registers_upgrade_route() {
         .unwrap();
 
     assert_eq!(response.status(), 400);
+}
+
+#[derive(Clone)]
+struct LifecycleGateway(Arc<Mutex<Vec<&'static str>>>);
+
+impl WebSocketGateway for LifecycleGateway {
+    fn on_connect(&self, context: &WebSocketContext) {
+        assert!(context.connection_id() > 0);
+        self.0.lock().unwrap().push("connect");
+    }
+
+    fn on_message(
+        &self, message: Message,
+    ) -> Pin<Box<dyn Future<Output = Option<Message>> + Send>> {
+        let events = Arc::clone(&self.0);
+        Box::pin(async move {
+            events.lock().unwrap().push("message");
+            Some(message)
+        })
+    }
+
+    fn on_disconnect(&self, _: &WebSocketContext) {
+        self.0.lock().unwrap().push("disconnect");
+    }
+}
+
+#[tokio::test]
+async fn websocket_gateway_exposes_connection_lifecycle() {
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let gateway = LifecycleGateway(Arc::clone(&events));
+    let context = WebSocketContext::new_for_test(42);
+
+    gateway.on_connect(&context);
+    gateway.on_message(Message::Text("hello".into())).await;
+    gateway.on_disconnect(&context);
+
+    assert_eq!(*events.lock().unwrap(), ["connect", "message", "disconnect"]);
 }

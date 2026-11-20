@@ -2,7 +2,10 @@ use std::{
     collections::HashMap,
     future::Future,
     pin::Pin,
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicU64, Ordering},
+    },
 };
 
 use axum::{
@@ -58,28 +61,60 @@ impl MicroserviceRouter {
 }
 
 pub trait WebSocketGateway: Clone + Send + Sync + 'static {
+    fn on_connect(&self, _: &WebSocketContext) {}
+
     fn on_message(&self, message: Message)
     -> Pin<Box<dyn Future<Output = Option<Message>> + Send>>;
+
+    fn on_disconnect(&self, _: &WebSocketContext) {}
+
+    fn on_error(&self, _: &WebSocketContext, _: String) {}
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct WebSocketContext {
+    connection_id: u64,
+}
+
+impl WebSocketContext {
+    pub fn connection_id(&self) -> u64 {
+        self.connection_id
+    }
+    pub fn new_for_test(connection_id: u64) -> Self {
+        Self { connection_id }
+    }
+}
+
+static NEXT_CONNECTION_ID: AtomicU64 = AtomicU64::new(1);
 
 pub fn websocket_router<G: WebSocketGateway>(gateway: G) -> Router {
     Router::new().route(
         "/",
         axum::routing::get(move |upgrade: WebSocketUpgrade| {
             let gateway = gateway.clone();
-            async move { upgrade.on_upgrade(move |socket| websocket_session(socket, gateway)) }
+            async move {
+                let context = WebSocketContext {
+                    connection_id: NEXT_CONNECTION_ID.fetch_add(1, Ordering::Relaxed),
+                };
+                upgrade.on_upgrade(move |socket| websocket_session(socket, gateway, context))
+            }
         }),
     )
 }
 
-async fn websocket_session<G: WebSocketGateway>(mut socket: WebSocket, gateway: G) {
+async fn websocket_session<G: WebSocketGateway>(
+    mut socket: WebSocket, gateway: G, context: WebSocketContext,
+) {
+    gateway.on_connect(&context);
     while let Some(Ok(message)) = socket.recv().await {
         if let Some(response) = gateway.on_message(message).await
             && socket.send(response).await.is_err()
         {
+            gateway.on_error(&context, String::from("failed to send websocket message"));
             break;
         }
     }
+    gateway.on_disconnect(&context);
 }
 
 #[derive(Clone, Debug, Deserialize)]
