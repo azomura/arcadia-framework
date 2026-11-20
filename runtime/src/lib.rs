@@ -12,3 +12,4 @@ pub use http::HttpException;
 pub use routing::{
     Controller, DynamicModule, ForwardRef, GlobalModule, Module, ModuleContext, forward_ref,
 };
+pub use testing::{CompiledModule, TestingModule};

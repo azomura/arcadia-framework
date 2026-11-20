@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::Router;
 
-use crate::{Container, Module, ModuleContext, ProviderToken, Scope};
+use crate::{Container, Injectable, Module, ModuleContext, ModuleRef, ProviderToken, Scope};
 
 type Override = Box<dyn FnOnce(&Container) + Send>;
 
@@ -63,6 +63,12 @@ impl<M: Module> TestingModule<M> {
         container.initialize();
         CompiledModule { container, router }
     }
+
+    pub async fn compile_async(self) -> CompiledModule {
+        let compiled = self.compile();
+        compiled.container.initialize_async().await;
+        compiled
+    }
 }
 
 pub struct CompiledModule {
@@ -71,8 +77,24 @@ pub struct CompiledModule {
 }
 
 impl CompiledModule {
+    pub fn get<T: Send + Sync + 'static>(&self) -> Arc<T> {
+        self.resolve::<T>()
+    }
+
     pub fn resolve<T: Send + Sync + 'static>(&self) -> Arc<T> {
         self.container.resolve::<T>()
+    }
+
+    pub async fn resolve_async<T: Send + Sync + 'static>(&self) -> Arc<T> {
+        self.container.resolve_async::<T>().await
+    }
+
+    pub fn create<T: Injectable>(&self) -> T {
+        T::create(&self.container)
+    }
+
+    pub fn module_ref(&self) -> ModuleRef {
+        ModuleRef::new(self.container.clone())
     }
 
     pub fn resolve_token<T: Send + Sync + 'static>(&self, token: ProviderToken<T>) -> Arc<T> {
