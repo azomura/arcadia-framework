@@ -67,3 +67,43 @@ pub(super) fn document(
 
     Ok((declaration, value))
 }
+
+#[cfg(test)]
+mod tests {
+    use quote::{ToTokens, format_ident};
+    use syn::{LitStr, parse_quote, parse_str};
+
+    use super::{complete_path, document, take_path, validate_routes};
+    use crate::controller::options::ControllerOptions;
+
+    #[test]
+    fn extracts_and_completes_openapi_path_attributes() {
+        let mut attributes: Vec<syn::Attribute> =
+            vec![parse_quote!(#[utoipa::path(responses((status = 200)))])];
+        let path = take_path(&mut attributes).unwrap();
+        let options = ControllerOptions::default();
+        let completed = complete_path(
+            &path,
+            &format_ident!("get"),
+            &LitStr::new("/users", proc_macro2::Span::call_site()),
+            &options,
+        )
+        .unwrap();
+
+        assert!(attributes.is_empty());
+        assert!(completed.to_token_stream().to_string().contains("users"));
+    }
+
+    #[test]
+    fn validates_route_count_and_builds_empty_document() {
+        let signature: syn::Signature = parse_str("fn route(&self)").unwrap();
+        let attribute: syn::Attribute = parse_quote!(#[utoipa::path(get)]);
+        assert!(validate_routes(Some(&attribute), 2, &signature).is_err());
+        assert!(validate_routes(Some(&attribute), 1, &signature).is_ok());
+
+        let options = ControllerOptions::default();
+        let (declaration, value) = document(&options, &parse_quote!(Controller), &[]).unwrap();
+        assert!(declaration.is_empty());
+        assert!(value.to_string().contains("OpenApi"));
+    }
+}

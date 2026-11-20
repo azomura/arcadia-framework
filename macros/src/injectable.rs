@@ -98,3 +98,32 @@ fn dependency(ty: &Type) -> syn::Result<(Type, bool, bool)> {
         _ => Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>")),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use syn::parse_str;
+
+    use super::dependency;
+
+    #[test]
+    fn parses_required_optional_and_lazy_dependencies() {
+        for (source, optional, lazy) in [
+            ("Arc<Service>", false, false),
+            ("Option<Arc<Service>>", true, false),
+            ("Lazy<Service>", false, true),
+        ] {
+            let (_, actual_optional, actual_lazy) =
+                dependency(&parse_str(source).unwrap()).unwrap();
+            assert_eq!((actual_optional, actual_lazy), (optional, lazy));
+        }
+    }
+
+    #[test]
+    fn rejects_unsupported_dependency_shapes() {
+        for source in ["Service", "Option<Service>"] {
+            assert!(dependency(&parse_str(source).unwrap()).is_err());
+        }
+        let invalid: syn::Result<syn::Type> = parse_str("Arc<");
+        assert!(invalid.is_err());
+    }
+}

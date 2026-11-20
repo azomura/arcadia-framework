@@ -13,3 +13,24 @@ pub(super) fn handler(signature: &Signature) -> (Vec<syn::Ident>, Vec<proc_macro
     }
     (arguments, parameters)
 }
+
+#[cfg(test)]
+mod tests {
+    use syn::parse_str;
+
+    use super::handler;
+
+    #[test]
+    fn maps_handler_parameters_to_generated_argument_names() {
+        let signature: syn::Signature =
+            parse_str("fn route(&self, id: u64, body: Payload)").unwrap();
+        let (arguments, parameters) = handler(&signature);
+        let rendered = parameters.iter().map(ToString::to_string).collect::<Vec<_>>();
+
+        assert_eq!(
+            arguments.iter().map(ToString::to_string).collect::<Vec<_>>(),
+            ["argument_0", "argument_1"]
+        );
+        assert_eq!(rendered, ["argument_0 : u64", "argument_1 : Payload"]);
+    }
+}

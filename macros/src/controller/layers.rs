@@ -58,3 +58,33 @@ fn parse_metadata(attribute: &syn::Attribute) -> syn::Result<Vec<(LitStr, LitStr
         })
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use syn::parse_str;
+
+    use super::take;
+
+    #[test]
+    fn extracts_layers_metadata_and_retains_unknown_attributes() {
+        let mut method: syn::ImplItemFn = parse_str(
+            r#"#[guards(Auth)] #[pipes(Parse)] #[metadata(version = "v1")] #[inline] fn route(&self) {}"#,
+        )
+        .unwrap();
+        let layers = take(&mut method).unwrap();
+
+        assert_eq!(layers.guards.len(), 1);
+        assert_eq!(layers.pipes.len(), 1);
+        assert_eq!(layers.metadata[0].0.value(), "version");
+        assert_eq!(layers.metadata[0].1.value(), "v1");
+        assert_eq!(method.attrs.len(), 1);
+    }
+
+    #[test]
+    fn rejects_non_string_metadata_values() {
+        let mut method: syn::ImplItemFn =
+            parse_str("#[metadata(version = 1)] fn route(&self) {}").unwrap();
+
+        assert!(take(&mut method).is_err());
+    }
+}
