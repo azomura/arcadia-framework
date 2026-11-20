@@ -71,3 +71,33 @@ impl Parse for ControllerOptions {
         Ok(options)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use syn::parse_str;
+
+    use super::ControllerOptions;
+
+    #[test]
+    fn parses_controller_metadata_and_layers() {
+        let options: ControllerOptions = parse_str(
+            r#"path = "/users", version = "1", tag = "Users", description = "User API", guards( AuthGuard ), middleware( RequestMiddleware )"#,
+        )
+        .unwrap();
+
+        assert_eq!(options.path, "/users");
+        assert_eq!(options.version.as_deref(), Some("1"));
+        assert_eq!(options.tag.as_ref().unwrap().value(), "Users");
+        assert_eq!(options.description.as_ref().unwrap().value(), "User API");
+        assert_eq!(options.guards.len(), 1);
+        assert_eq!(options.middleware.len(), 1);
+        assert_eq!(options.route_prefix(), "/v1/users");
+    }
+
+    #[test]
+    fn rejects_unknown_controller_option() {
+        let result: syn::Result<ControllerOptions> = parse_str("unknown = \"value\"");
+
+        assert!(result.is_err());
+    }
+}

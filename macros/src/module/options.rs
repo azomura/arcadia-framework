@@ -81,3 +81,40 @@ fn expressions(input: ParseStream<'_>, target: &mut Vec<Expr>) -> syn::Result<()
     target.extend(Punctuated::<Expr, Token![,]>::parse_terminated(input)?);
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use syn::parse_str;
+
+    use super::ModuleOptions;
+
+    #[test]
+    fn parses_all_module_registration_groups() {
+        let options: ModuleOptions = parse_str(
+            "controllers(A), imports(B), providers(C), exports(D), request(E), transient(F), values(T => 1), factories(U => make()), request_factories(V => request()), transient_factories(W => transient()), token_exports(TOKEN), lifecycle(Hook), globals(Global), dynamic(module())",
+        )
+        .unwrap();
+
+        assert_eq!(options.controllers.len(), 1);
+        assert_eq!(options.imports.len(), 1);
+        assert_eq!(options.providers.len(), 1);
+        assert_eq!(options.exports.len(), 1);
+        assert_eq!(options.requests.len(), 1);
+        assert_eq!(options.transients.len(), 1);
+        assert_eq!(options.values.len(), 1);
+        assert_eq!(options.factories.len(), 1);
+        assert_eq!(options.request_factories.len(), 1);
+        assert_eq!(options.transient_factories.len(), 1);
+        assert_eq!(options.token_exports.len(), 1);
+        assert_eq!(options.lifecycle.len(), 1);
+        assert_eq!(options.globals.len(), 1);
+        assert_eq!(options.dynamic.len(), 1);
+    }
+
+    #[test]
+    fn rejects_unknown_module_registration_group() {
+        let result: syn::Result<ModuleOptions> = parse_str("unknown(A)");
+
+        assert!(result.is_err());
+    }
+}
