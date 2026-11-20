@@ -34,6 +34,14 @@ impl<M: Module> GlobalModule<M> {
 
 pub struct ForwardRef<F>(Option<F>);
 
+pub fn forward_ref<F, M>(factory: F) -> ForwardRef<F>
+where
+    F: FnOnce() -> M + Send + 'static,
+    M: Module,
+{
+    ForwardRef::new(factory)
+}
+
 impl<F> ForwardRef<F> {
     pub fn new(factory: F) -> Self {
         Self(Some(factory))

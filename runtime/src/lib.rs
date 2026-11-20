@@ -9,4 +9,6 @@ pub use application::{
     ModuleRef, ProviderToken, RequestContainer, Scope,
 };
 pub use http::HttpException;
-pub use routing::{Controller, DynamicModule, ForwardRef, GlobalModule, Module, ModuleContext};
+pub use routing::{
+    Controller, DynamicModule, ForwardRef, GlobalModule, Module, ModuleContext, forward_ref,
+};
