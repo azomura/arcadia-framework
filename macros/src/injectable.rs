@@ -34,10 +34,17 @@ fn injectable(implementation: &mut ItemImpl) -> syn::Result<proc_macro2::TokenSt
             .position(|attribute| attribute.path().is_ident("inject"))
             .map(|index| argument.attrs.remove(index).parse_args::<Expr>())
             .transpose()?;
-        let ty = dependency(&argument.ty)?;
-        dependencies.push(match token {
-            Some(token) => quote!(container.resolve_token::<#ty>(#token)),
-            None => quote!(container.resolve::<#ty>()),
+        let (ty, optional) = dependency(&argument.ty)?;
+        dependencies.push(match (token, optional) {
+            (Some(token), false) => quote!(container.resolve_token::<#ty>(#token)),
+            (None, false) => quote!(container.resolve::<#ty>()),
+            (None, true) => quote!(container.try_resolve::<#ty>()),
+            (Some(_), true) => {
+                return Err(syn::Error::new_spanned(
+                    argument,
+                    "optional token injection is unsupported",
+                ));
+            }
         });
     }
 
@@ -51,7 +58,7 @@ fn injectable(implementation: &mut ItemImpl) -> syn::Result<proc_macro2::TokenSt
     })
 }
 
-fn dependency(ty: &Type) -> syn::Result<&Type> {
+fn dependency(ty: &Type) -> syn::Result<(Type, bool)> {
     let Type::Path(path) = ty else {
         return Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>"));
     };
@@ -59,8 +66,27 @@ fn dependency(ty: &Type) -> syn::Result<&Type> {
     let PathArguments::AngleBracketed(arguments) = &segment.arguments else {
         return Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>"));
     };
-    match arguments.args.first() {
-        Some(GenericArgument::Type(dependency)) if segment.ident == "Arc" => Ok(dependency),
+    let optional = segment.ident == "Option";
+    let Some(GenericArgument::Type(inner)) = arguments.args.first() else {
+        return Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>"));
+    };
+    if segment.ident == "Arc" {
+        return Ok((inner.clone(), false));
+    }
+    if !optional {
+        return Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>"));
+    }
+    let Type::Path(inner_path) = inner else {
+        return Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>"));
+    };
+    let inner_segment = inner_path.path.segments.last().unwrap();
+    let PathArguments::AngleBracketed(inner_arguments) = &inner_segment.arguments else {
+        return Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>"));
+    };
+    match inner_arguments.args.first() {
+        Some(GenericArgument::Type(dependency)) if inner_segment.ident == "Arc" => {
+            Ok((dependency.clone(), optional))
+        }
         _ => Err(syn::Error::new_spanned(ty, "dependency must have type Arc<T>")),
     }
 }

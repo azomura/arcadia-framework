@@ -7,6 +7,7 @@ use tower::ServiceExt;
 
 #[derive(Clone)]
 struct AppService;
+struct OptionalService;
 
 #[injectable]
 impl AppService {
@@ -18,18 +19,20 @@ impl AppService {
 #[derive(Clone)]
 struct AppController {
     service: Arc<AppService>,
+    optional: Option<Arc<OptionalService>>,
 }
 
 #[controller(path = "/app")]
 #[injectable]
 impl AppController {
-    fn new(service: Arc<AppService>) -> Self {
-        Self { service }
+    fn new(service: Arc<AppService>, optional: Option<Arc<OptionalService>>) -> Self {
+        Self { service, optional }
     }
 
     #[get("/")]
     async fn index(&self) -> &'static str {
         let _ = &self.service;
+        let _ = &self.optional;
         "ok"
     }
 }
