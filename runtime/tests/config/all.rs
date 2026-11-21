@@ -7,7 +7,8 @@ use std::{
 };
 
 use arcadia_framework::config::{
-    ConfigError, ConfigField, ConfigReader, ConfigSection, ConfigValues, validate_text,
+    BaseConfig, ConfigError, ConfigField, ConfigReader, ConfigSection, ConfigValues, Environment,
+    ProjectPaths, validate_text,
 };
 
 struct Reader(ConfigValues);
@@ -131,4 +132,22 @@ fn config_schema_builders_and_errors_are_readable() {
     let error = ConfigError::new("TOKEN", "is missing");
     assert_eq!(error.key(), "TOKEN");
     assert_eq!(error.to_string(), "TOKEN: is missing");
+}
+
+#[test]
+fn base_config_selects_named_environment_and_rejects_missing_files() {
+    let root = std::env::temp_dir().join("arcadia-base-config");
+    let _ = fs::remove_dir_all(&root);
+    fs::create_dir_all(&root).unwrap();
+    fs::write(root.join(".env.dev"), "PORT=3100\n").unwrap();
+    fs::write(root.join(".env"), "PORT=3200\n").unwrap();
+
+    let paths = ProjectPaths::for_environment(&root, Environment::Dev);
+    assert_eq!(paths.env_files(), &[root.join(".env.dev")]);
+    let config = BaseConfig::from_values(std::iter::empty(), paths).unwrap();
+    assert_eq!(config.read(&ConfigField::new("PORT", "port")).unwrap(), "3100");
+
+    fs::remove_dir_all(&root).unwrap();
+    let missing = ProjectPaths::for_environment(&root, Environment::Dev);
+    assert!(BaseConfig::from_values(std::iter::empty(), missing).is_err());
 }
