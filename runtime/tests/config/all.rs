@@ -8,7 +8,8 @@ use std::{
 
 use arcadia_framework::config::{
     BaseConfig, ConfigError, ConfigField, ConfigReader, ConfigSection, ConfigValues, Environment,
-    ProjectPaths, validate_text,
+    ProjectPaths, validate_email, validate_ip, validate_optional_text, validate_port,
+    validate_text, validate_url,
 };
 
 struct Reader(ConfigValues);
@@ -150,4 +151,19 @@ fn base_config_selects_named_environment_and_rejects_missing_files() {
     fs::remove_dir_all(&root).unwrap();
     let missing = ProjectPaths::for_environment(&root, Environment::Dev);
     assert!(BaseConfig::from_values(std::iter::empty(), missing).is_err());
+}
+
+#[test]
+fn reusable_validators_cover_common_configuration_values() {
+    let field = ConfigField::new("VALUE", "value");
+    assert!(validate_optional_text(&field, None).is_ok());
+    assert!(validate_optional_text(&field, Some("ok")).is_ok());
+    assert!(validate_email(&field, Some("dev@example.com")).is_ok());
+    assert!(validate_email(&field, Some("invalid")).is_err());
+    assert!(validate_url(&field, Some("https://example.com")).is_ok());
+    assert!(validate_url(&field, Some("example.com")).is_err());
+    assert_eq!(validate_ip(&field, "127.0.0.1").unwrap().to_string(), "127.0.0.1");
+    assert!(validate_ip(&field, "invalid").is_err());
+    assert_eq!(validate_port(&field, 3000).unwrap(), 3000);
+    assert!(validate_port(&field, 65_536).is_err());
 }
