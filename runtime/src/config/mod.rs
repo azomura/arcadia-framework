@@ -5,7 +5,7 @@ mod reader;
 mod section;
 mod source;
 mod text;
-mod validators;
+pub mod validators;
 
 pub use base::{BaseConfig, Environment, ProjectPaths};
 pub use error::ConfigError;
