@@ -15,6 +15,8 @@ pub struct BaseConfig {
 
 impl BaseConfig {
     pub fn from_env() -> Result<Self, ConfigError> {
+        crate::core::logger::init_global("logs")
+            .map_err(|error| ConfigError::new("LOGGER", format!("critical: {error}")))?;
         Self::from_values(std::env::vars_os(), ProjectPaths::discover())
     }
 
