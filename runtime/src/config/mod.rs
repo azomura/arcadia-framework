@@ -1,3 +1,4 @@
+mod base;
 mod error;
 mod field;
 mod reader;
@@ -5,6 +6,7 @@ mod section;
 mod source;
 mod text;
 
+pub use base::{BaseConfig, Environment, ProjectPaths};
 pub use error::ConfigError;
 pub use field::ConfigField;
 pub use reader::ConfigReader;
