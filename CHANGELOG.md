@@ -2,27 +2,23 @@
 
 All notable Arcadia Framework changes are documented here.
 
-## 0.1.8
+## 0.2.0
 
 ### English
 
-- expanded integration coverage for the container, scoped tokens, lifecycle,
-  application bootstrap, and listen entrypoint;
-- covered configuration edge cases, invalid environment files, transport
-  message parsing, GraphQL defaults, and WebSocket room behavior;
-- covered all module registration groups and controller OpenAPI metadata in
-  procedural macro integration tests;
-- verified formatting, workspace tests, Clippy, and LLVM source coverage.
+- added reusable `BaseConfig`, `ProjectPaths`, and environment-aware loading;
+- added `.env.<environment>` → `.env` precedence with critical startup errors;
+- added public validators for booleans, choices, email, IP, ports, ranges,
+  lists, optional text, and URLs;
+- initialized the logger before configuration loading and covered the new APIs.
 
 ### Русский
 
-- расширено интеграционное покрытие контейнера, scoped-токенов, lifecycle,
-  bootstrap приложения и входа `listen`;
-- добавлены проверки edge cases конфигурации, некорректных env-файлов,
-  transport-сообщений, GraphQL defaults и работы WebSocket-комнат;
-- покрыты все группы регистрации модулей и OpenAPI metadata контроллеров в
-  интеграционных тестах procedural macros;
-- проверены форматирование, workspace-тесты, Clippy и LLVM source coverage.
+- добавлены переиспользуемые `BaseConfig`, `ProjectPaths` и загрузка с учётом окружения;
+- добавлен порядок `.env.<окружение>` → `.env` с критической ошибкой при запуске;
+- добавлены публичные validators для boolean, choices, email, IP, портов,
+  диапазонов, списков, optional text и URL;
+- логгер инициализируется до загрузки конфигурации, новые API покрыты тестами.
 
 ## 0.1.7
 
