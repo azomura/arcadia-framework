@@ -8,8 +8,9 @@ use std::{
 
 use arcadia_framework::config::{
     BaseConfig, ConfigError, ConfigField, ConfigReader, ConfigSection, ConfigValues, Environment,
-    ProjectPaths, validate_email, validate_ip, validate_optional_text, validate_port,
-    validate_text, validate_url,
+    ProjectPaths, validate_bool, validate_choice, validate_email, validate_ip,
+    validate_non_empty_list, validate_optional_text, validate_port, validate_text,
+    validate_u32_range, validate_url,
 };
 
 struct Reader(ConfigValues);
@@ -166,4 +167,12 @@ fn reusable_validators_cover_common_configuration_values() {
     assert!(validate_ip(&field, "invalid").is_err());
     assert_eq!(validate_port(&field, 3000).unwrap(), 3000);
     assert!(validate_port(&field, 65_536).is_err());
+    assert!(validate_bool(&field, "true").unwrap());
+    assert!(validate_bool(&field, "invalid").is_err());
+    assert_eq!(validate_choice(&field, "dev", &["dev", "release"]).unwrap(), "dev");
+    assert!(validate_choice(&field, "test", &["dev", "release"]).is_err());
+    assert!(validate_non_empty_list(&field, &["127.0.0.1"]).is_ok());
+    assert!(validate_non_empty_list::<&str>(&field, &[]).is_err());
+    assert_eq!(validate_u32_range(&field, 3, 1, 5).unwrap(), 3);
+    assert!(validate_u32_range(&field, 6, 1, 5).is_err());
 }

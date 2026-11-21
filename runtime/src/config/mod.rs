@@ -15,5 +15,6 @@ pub use section::ConfigSection;
 pub use source::ConfigValues;
 pub use text::validate_text;
 pub use validators::{
-    validate_email, validate_ip, validate_optional_text, validate_port, validate_url,
+    validate_bool, validate_choice, validate_email, validate_ip, validate_non_empty_list,
+    validate_optional_text, validate_port, validate_u32_range, validate_url,
 };
