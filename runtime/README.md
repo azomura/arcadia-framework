@@ -35,8 +35,8 @@ in application modules while reusing `arcadia_framework::config::validators`.
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.8"
-arcadia-macros = "0.1.8"
+arcadia-framework = "0.2.0"
+arcadia-macros = "0.2.0"
 ```
 
 ```bash
@@ -48,7 +48,7 @@ cargo add arcadia-macros@0.1.7
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.8" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.2.0" }
 ```
 
 ```bash
@@ -96,8 +96,8 @@ validators. Сначала проверяется `.env.<окружение>`, �
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.8"
-arcadia-macros = "0.1.8"
+arcadia-framework = "0.2.0"
+arcadia-macros = "0.2.0"
 ```
 
 ```bash
@@ -109,7 +109,7 @@ cargo add arcadia-macros@0.1.7
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.8" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.2.0" }
 ```
 
 ```bash
