@@ -13,12 +13,30 @@ controllers, request context, lifecycle hooks, middleware, guards, pipes,
 interceptors, filters, WebSockets, transports, OpenAPI, testing helpers, and a
 customizable tracing logger.
 
+### Configuration
+
+The runtime provides `BaseConfig`, `ProjectPaths`, environment selection
+(`dev`, `release`, `build`, `test`), typed `ConfigSection` loading, and public
+validators. It checks `.env.<environment>` first and then `.env`; missing files
+return a critical configuration error.
+
+```rust
+use arcadia_framework::config::{validate_email, BaseConfig, ConfigField};
+
+let config = BaseConfig::from_env()?;
+validate_email(&ConfigField::new("ADMIN_EMAIL", "administrator email"),
+               config.optional("ADMIN_EMAIL")?.as_deref())?;
+```
+
+Custom sections implement `ConfigSection`, and custom validators can be kept
+in application modules while reusing `arcadia_framework::config::validators`.
+
 ### Install from crates.io
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.9"
-arcadia-macros = "0.1.9"
+arcadia-framework = "0.2.0"
+arcadia-macros = "0.2.0"
 ```
 
 ```bash
@@ -30,7 +48,7 @@ cargo add arcadia-macros@0.1.7
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.9" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.2.0" }
 ```
 
 ```bash
@@ -63,12 +81,23 @@ controllers, request context, lifecycle hooks, middleware, guards, pipes,
 interceptors, filters, WebSockets, transports, OpenAPI, testing helpers и
 настраиваемый tracing-логгер.
 
+### Конфигурация
+
+Runtime предоставляет `BaseConfig`, `ProjectPaths`, выбор окружения (`dev`,
+`release`, `build`, `test`), загрузку типизированных `ConfigSection` и публичные
+validators. Сначала проверяется `.env.<окружение>`, затем `.env`; при отсутствии
+файлов возвращается критическая ошибка конфигурации.
+
+Собственные секции реализуются через `ConfigSection`, а свои validators можно
+хранить в модулях приложения и переиспользовать функции из
+`arcadia_framework::config::validators`.
+
 ### Установка из crates.io
 
 ```toml
 [dependencies]
-arcadia-framework = "0.1.9"
-arcadia-macros = "0.1.9"
+arcadia-framework = "0.2.0"
+arcadia-macros = "0.2.0"
 ```
 
 ```bash
@@ -80,7 +109,7 @@ cargo add arcadia-macros@0.1.7
 
 ```toml
 [dependencies]
-arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.1.9" }
+arcadia-framework = { git = "https://github.com/azomura/arcadia-framework.git", tag = "v0.2.0" }
 ```
 
 ```bash

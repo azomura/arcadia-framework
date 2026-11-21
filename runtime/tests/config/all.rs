@@ -7,7 +7,10 @@ use std::{
 };
 
 use arcadia_framework::config::{
-    ConfigError, ConfigField, ConfigReader, ConfigSection, ConfigValues, validate_text,
+    BaseConfig, ConfigError, ConfigField, ConfigReader, ConfigSection, ConfigValues, Environment,
+    ProjectPaths, validate_bool, validate_choice, validate_email, validate_ip,
+    validate_non_empty_list, validate_optional_text, validate_port, validate_text,
+    validate_u32_range, validate_url,
 };
 
 struct Reader(ConfigValues);
@@ -131,4 +134,45 @@ fn config_schema_builders_and_errors_are_readable() {
     let error = ConfigError::new("TOKEN", "is missing");
     assert_eq!(error.key(), "TOKEN");
     assert_eq!(error.to_string(), "TOKEN: is missing");
+}
+
+#[test]
+fn base_config_selects_named_environment_and_rejects_missing_files() {
+    let root = std::env::temp_dir().join("arcadia-base-config");
+    let _ = fs::remove_dir_all(&root);
+    fs::create_dir_all(&root).unwrap();
+    fs::write(root.join(".env.dev"), "PORT=3100\n").unwrap();
+    fs::write(root.join(".env"), "PORT=3200\n").unwrap();
+
+    let paths = ProjectPaths::for_environment(&root, Environment::Dev);
+    assert_eq!(paths.env_files(), &[root.join(".env.dev")]);
+    let config = BaseConfig::from_values(std::iter::empty(), paths).unwrap();
+    assert_eq!(config.read(&ConfigField::new("PORT", "port")).unwrap(), "3100");
+
+    fs::remove_dir_all(&root).unwrap();
+    let missing = ProjectPaths::for_environment(&root, Environment::Dev);
+    assert!(BaseConfig::from_values(std::iter::empty(), missing).is_err());
+}
+
+#[test]
+fn reusable_validators_cover_common_configuration_values() {
+    let field = ConfigField::new("VALUE", "value");
+    assert!(validate_optional_text(&field, None).is_ok());
+    assert!(validate_optional_text(&field, Some("ok")).is_ok());
+    assert!(validate_email(&field, Some("dev@example.com")).is_ok());
+    assert!(validate_email(&field, Some("invalid")).is_err());
+    assert!(validate_url(&field, Some("https://example.com")).is_ok());
+    assert!(validate_url(&field, Some("example.com")).is_err());
+    assert_eq!(validate_ip(&field, "127.0.0.1").unwrap().to_string(), "127.0.0.1");
+    assert!(validate_ip(&field, "invalid").is_err());
+    assert_eq!(validate_port(&field, 3000).unwrap(), 3000);
+    assert!(validate_port(&field, 65_536).is_err());
+    assert!(validate_bool(&field, "true").unwrap());
+    assert!(validate_bool(&field, "invalid").is_err());
+    assert_eq!(validate_choice(&field, "dev", &["dev", "release"]).unwrap(), "dev");
+    assert!(validate_choice(&field, "test", &["dev", "release"]).is_err());
+    assert!(validate_non_empty_list(&field, &["127.0.0.1"]).is_ok());
+    assert!(validate_non_empty_list::<&str>(&field, &[]).is_err());
+    assert_eq!(validate_u32_range(&field, 3, 1, 5).unwrap(), 3);
+    assert!(validate_u32_range(&field, 6, 1, 5).is_err());
 }

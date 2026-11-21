@@ -13,9 +13,11 @@ architecture and developer experience of NestJS.
 - OpenAPI metadata and explicitly enabled Swagger UI;
 - customizable tracing logger with colored console output and file logging;
 - procedural macros for modules, controllers, routes, and injectable providers.
-- expanded integration coverage for container scopes, lifecycle, configuration,
-  transports, GraphQL defaults, WebSocket rooms, and macro registration groups;
-- validated formatting, workspace tests, Clippy, and LLVM source coverage.
+- reusable `BaseConfig`, `ProjectPaths`, and environment-aware configuration;
+- `.env.<environment>` → `.env` precedence with critical startup errors;
+- public validators for booleans, choices, email, IP, ports, ranges, lists,
+  optional text, and URLs;
+- logger initialization before configuration loading and tests for the new APIs.
 
 Full changelog: https://github.com/azomura/arcadia-framework/blob/main/CHANGELOG.md
 
@@ -32,8 +34,10 @@ Arcadia Framework — модульный backend-фреймворк на Rust, �
 - OpenAPI metadata и Swagger UI, подключаемый явно;
 - настраиваемый tracing-логгер с цветным выводом и записью в файлы;
 - procedural macros для модулей, controllers, маршрутов и injectable providers.
-- расширенное интеграционное покрытие container scopes, lifecycle, конфигурации,
-  transports, GraphQL defaults, WebSocket-комнат и групп регистрации macros;
-- проверены форматирование, workspace-тесты, Clippy и LLVM source coverage.
+- переиспользуемые `BaseConfig`, `ProjectPaths` и конфигурация с учётом окружения;
+- порядок `.env.<окружение>` → `.env` с критической ошибкой при запуске;
+- публичные validators для boolean, choices, email, IP, портов, диапазонов,
+  списков, optional text и URL;
+- инициализация логгера до загрузки конфигурации и тесты новых API.
 
 Полный changelog: https://github.com/azomura/arcadia-framework/blob/main/CHANGELOG.md
